@@ -58,12 +58,17 @@ class _TodoPageState extends State<TodoPage> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(12.0)),
       ),
       builder: (BuildContext context) {
-        return SizedBox(
-          width: double.infinity,
-          child: TodoBottomSheet(
-            controller: _controller,
-            onSave: saveNewTask,
-            onCancel: () => Navigator.pop(context),
+        return SingleChildScrollView(
+          child: Container(
+            padding: EdgeInsets.only(
+              bottom: MediaQuery.of(context).viewInsets.bottom,
+            ),
+            width: double.infinity,
+            child: TodoBottomSheet(
+              controller: _controller,
+              onSave: saveNewTask,
+              onCancel: () => Navigator.pop(context),
+            ),
           ),
         );
       },

@@ -21,7 +21,8 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       home: const NavPage(),
-      theme: ThemeData(primaryColor:  const Color(0xfffa9e51)),
+      theme: ThemeData(
+          colorScheme: ColorScheme.fromSeed(seedColor: Colors.orange)),
       routes: {
         'home': (context) => const HomePage(),
         'settings': (context) => const SettingsPage(),

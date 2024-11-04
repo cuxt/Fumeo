@@ -8,13 +8,12 @@ class TodoTile extends StatelessWidget {
   Function(bool?)? onChanged;
   Function(BuildContext)? deleteTask;
 
-  TodoTile({
-    super.key,
-    required this.taskName,
-    required this.taskCompleted,
-    required this.onChanged,
-    required this.deleteTask
-  });
+  TodoTile(
+      {super.key,
+      required this.taskName,
+      required this.taskCompleted,
+      required this.onChanged,
+      required this.deleteTask});
 
   @override
   Widget build(BuildContext context) {
@@ -25,29 +24,32 @@ class TodoTile extends StatelessWidget {
             SlidableAction(
               onPressed: deleteTask,
               icon: Icons.delete,
-              backgroundColor: Colors.red,
+              backgroundColor: Theme.of(context).colorScheme.error,
               borderRadius: const BorderRadius.all(Radius.circular(12)),
             )
           ]),
           child: Container(
             padding: const EdgeInsets.all(24),
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.all(Radius.circular(12)),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surfaceContainerHighest,
+              borderRadius: const BorderRadius.all(Radius.circular(12)),
             ),
             child: Row(
               children: [
                 Checkbox(
                   value: taskCompleted,
                   onChanged: onChanged,
-                  activeColor: Colors.black,
                 ),
-                Text(
-                  taskName,
-                  style: TextStyle(
+                Expanded(
+                  child: Text(
+                    taskName,
+                    style: TextStyle(
                       decoration: taskCompleted
                           ? TextDecoration.lineThrough
-                          : TextDecoration.none),
+                          : TextDecoration.none,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
               ],
             ),

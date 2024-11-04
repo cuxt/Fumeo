@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:fumeo/data/database.dart';
-import 'package:fumeo/pages/todo/dialog_box.dart';
+import 'package:fumeo/pages/todo/todo_bottom_sheet.dart';
 import 'package:fumeo/pages/todo/todo_tile.dart';
 import 'package:hive_ce_flutter/hive_flutter.dart';
 
@@ -27,7 +27,6 @@ class _TodoPageState extends State<TodoPage> {
     super.initState();
   }
 
-
   final _controller = TextEditingController();
 
   void checkBoxChanged(bool? value, int index) {
@@ -38,22 +37,34 @@ class _TodoPageState extends State<TodoPage> {
   }
 
   saveNewTask() {
+    if (_controller.text.isEmpty) {
+      return;
+    }
+
     setState(() {
       db.todoList.add([_controller.text, false]);
       _controller.clear();
     });
+
     Navigator.of(context).pop();
     db.updateDataBase();
   }
 
   void createNewTask() {
-    showDialog(
+    showModalBottomSheet(
       context: context,
-      builder: (context) {
-        return DialogBox(
-          controller: _controller,
-          onSave: saveNewTask,
-          onCancel: () => Navigator.of(context).pop(),
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(12.0)),
+      ),
+      builder: (BuildContext context) {
+        return SizedBox(
+          width: double.infinity,
+          child: TodoBottomSheet(
+            controller: _controller,
+            onSave: saveNewTask,
+            onCancel: () => Navigator.pop(context),
+          ),
         );
       },
     );
@@ -69,7 +80,6 @@ class _TodoPageState extends State<TodoPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        backgroundColor: Colors.grey[200],
         floatingActionButton: FloatingActionButton(
           onPressed: createNewTask,
           child: const Icon(Icons.add),

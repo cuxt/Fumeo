@@ -32,22 +32,22 @@ class _NavPageState extends State<NavPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[300],
+      backgroundColor: Theme.of(context).colorScheme.surface,
       bottomNavigationBar: BottomNavBar(
         onTabChange: navigationBottomBar,
         selectedIndex: _selectedIndex,
       ),
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
         title: const Text('Fumeo'),
         leading: Builder(
           builder: (context) => IconButton(
             onPressed: () {
               Scaffold.of(context).openDrawer();
             },
-            icon: const Padding(
-              padding: EdgeInsets.only(left: 12.0),
-              child: Icon(Icons.menu, color: Colors.black),
+            icon: Padding(
+              padding: const EdgeInsets.only(left: 12.0),
+              child: Icon(Icons.menu,
+                  color: Theme.of(context).colorScheme.onSurface),
             ),
           ),
         ),

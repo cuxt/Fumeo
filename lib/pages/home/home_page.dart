@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:fumeo/theme/color.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -18,7 +17,8 @@ class _HomePageState extends State<HomePage> {
         padding: const EdgeInsets.all(12),
         margin: const EdgeInsets.symmetric(horizontal: 25.0),
         decoration: BoxDecoration(
-            color: Colors.grey[200], borderRadius: BorderRadius.circular(8)),
+            color: Theme.of(context).colorScheme.surfaceContainerHighest,
+            borderRadius: BorderRadius.circular(12)),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -26,21 +26,21 @@ class _HomePageState extends State<HomePage> {
               child: TextField(
                 controller: _controller,
                 decoration: const InputDecoration(
-                  border: OutlineInputBorder(),
+                  border: InputBorder.none, // 隐藏边框
                   hintText: 'Search',
                 ),
               ),
             ),
             const SizedBox(width: 8),
             Container(
-              decoration: const BoxDecoration(
-                color: FmColors.primary, // 背景颜色
-                shape: BoxShape.circle, // 圆形
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.primary,
+                shape: BoxShape.circle,
               ),
-              padding: const EdgeInsets.all(8), // 内部填充
-              child: const Icon(
+              padding: const EdgeInsets.all(8),
+              child: Icon(
                 Icons.search,
-                color: Colors.white, // 图标颜色
+                color: Theme.of(context).colorScheme.onPrimary,
               ),
             ),
           ],

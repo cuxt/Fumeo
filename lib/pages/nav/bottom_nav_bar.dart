@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:fumeo/theme/color.dart';
 
 class BottomNavBar extends StatefulWidget {
   final void Function(int)? onTabChange;
@@ -19,8 +18,9 @@ class _BottomNavBarState extends State<BottomNavBar> {
       currentIndex: widget.selectedIndex,
       showSelectedLabels: true,
       showUnselectedLabels: false,
-      selectedItemColor: FmColors.primary, // 选中标签的颜色
-      unselectedItemColor: Colors.grey, // 未选中标签的颜色
+      selectedItemColor: Theme.of(context).colorScheme.primary, // 选中标签的颜色
+      unselectedItemColor:
+          Theme.of(context).colorScheme.onSurface.withOpacity(0.6), // 未选中标签的颜色
       onTap: (index) {
         widget.onTabChange?.call(index);
       },
@@ -40,7 +40,9 @@ class _BottomNavBarState extends State<BottomNavBar> {
         assetPath,
         width: 24.0,
         height: 24.0,
-        color: widget.selectedIndex == index ? FmColors.primary : Colors.grey,
+        color: widget.selectedIndex == index
+            ? Theme.of(context).colorScheme.primary
+            : Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
       ),
       label: label,
     );

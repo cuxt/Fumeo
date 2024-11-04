@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:fumeo/components/launch_url.dart';
 
 class ExplorePage extends StatefulWidget {
   const ExplorePage({super.key});
@@ -19,21 +19,21 @@ class _ExplorePageState extends State<ExplorePage> {
         logoPath: 'lib/images/logo.png',
         title: '官网',
         onTap: () {
-          _launchURL('https://web.xbxin.com');
+          launchURL('https://web.xbxin.com');
         },
       ),
       ExploreItem(
         logoPath: 'lib/images/nextchat.png',
         title: 'NextChat',
         onTap: () {
-          _launchURL('https://next.bxin.top');
+          launchURL('https://next.bxin.top');
         },
       ),
       ExploreItem(
         logoPath: 'lib/images/newapi.png',
         title: 'NewAPI',
         onTap: () {
-          _launchURL('https://llm.bxin.top');
+          launchURL('https://llm.bxin.top');
         },
       ),
     ];
@@ -41,8 +41,11 @@ class _ExplorePageState extends State<ExplorePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: items.map((item) => _buildRow(item)).toList(),
+    return Container(
+      color: Theme.of(context).colorScheme.surface,
+      child: ListView(
+        children: items.map((item) => _buildRow(item)).toList(),
+      ),
     );
   }
 
@@ -52,8 +55,11 @@ class _ExplorePageState extends State<ExplorePage> {
       child: InkWell(
         onTap: item.onTap,
         child: Container(
-          color: Colors.grey[200],
-          height: 50.0,
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.surfaceContainerHighest,
+            borderRadius: BorderRadius.circular(12.0),
+          ),
+          height: 70.0,
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -72,22 +78,15 @@ class _ExplorePageState extends State<ExplorePage> {
                   ),
                 ],
               ),
-              const Icon(Icons.chevron_right),
+              const Padding(
+                padding: EdgeInsets.only(right: 16.0), // 右边距
+                child: Icon(Icons.chevron_right),
+              ),
             ],
           ),
         ),
       ),
     );
-  }
-
-  // 打开网页
-  Future<void> _launchURL(String url) async {
-    final Uri uri = Uri.parse(url);
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri);
-    } else {
-      throw 'Could not launch $url';
-    }
   }
 }
 

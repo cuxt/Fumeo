@@ -7,9 +7,10 @@ class TodoDataBase {
   // 第一次启动时初始化数据
   void createInitialData() {
     todoList = [
-      ['Make tutorial', false],
-      ['Do exercise', false],
-      ['Do homework', false]
+      ['数据结构', false],
+      ['计算机组成原理', false],
+      ['操作系统', false],
+      ['计算机网络', false],
     ];
   }
 

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:fumeo/components/launch_url.dart';
+import 'package:fumeo/pages/nav/side_nav_bar.dart';
 
 class ExplorePage extends StatefulWidget {
   const ExplorePage({super.key});
@@ -41,9 +42,23 @@ class _ExplorePageState extends State<ExplorePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      color: Theme.of(context).colorScheme.surface,
-      child: ListView(
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('发现'),
+        leading: Builder(
+          builder: (context) => IconButton(
+            onPressed: () {
+              Scaffold.of(context).openDrawer();
+            },
+            icon: Padding(
+              padding: const EdgeInsets.only(left: 12.0),
+              child: Icon(Icons.menu),
+            ),
+          ),
+        ),
+      ),
+      drawer: const SideNavBar(),
+      body: ListView(
         children: items.map((item) => _buildRow(item)).toList(),
       ),
     );

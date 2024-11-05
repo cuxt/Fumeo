@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:fumeo/data/database.dart';
+import 'package:fumeo/pages/nav/side_nav_bar.dart';
 import 'package:fumeo/pages/todo/todo_bottom_sheet.dart';
 import 'package:fumeo/pages/todo/todo_tile.dart';
+import 'package:fumeo/util.dart';
 import 'package:hive_ce_flutter/hive_flutter.dart';
 
 class TodoPage extends StatefulWidget {
@@ -38,6 +40,8 @@ class _TodoPageState extends State<TodoPage> {
 
   saveNewTask() {
     if (_controller.text.isEmpty) {
+      Util.showAwesomebar(context, 'warning', 'Warning', '内容不能为空');
+
       return;
     }
 
@@ -85,6 +89,21 @@ class _TodoPageState extends State<TodoPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+        appBar: AppBar(
+          title: const Text('小记'),
+          leading: Builder(
+            builder: (context) => IconButton(
+              onPressed: () {
+                Scaffold.of(context).openDrawer();
+              },
+              icon: Padding(
+                padding: const EdgeInsets.only(left: 12.0),
+                child: Icon(Icons.menu),
+              ),
+            ),
+          ),
+        ),
+        drawer: const SideNavBar(),
         floatingActionButton: FloatingActionButton(
           onPressed: createNewTask,
           child: const Icon(Icons.add),

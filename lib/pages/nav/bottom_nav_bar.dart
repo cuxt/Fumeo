@@ -25,7 +25,7 @@ class _BottomNavBarState extends State<BottomNavBar> {
         widget.onTabChange?.call(index);
       },
       items: [
-        _buildBottomNavItem('lib/images/icons/ic_home.png', '首页', 0),
+        _buildBottomNavItem('lib/images/icons/ic_chat.png', 'LLM', 0),
         _buildBottomNavItem('lib/images/icons/ic_edit.png', '小记', 1),
         _buildBottomNavItem('lib/images/icons/ic_focus.png', '发现', 2),
         _buildBottomNavItem('lib/images/icons/ic_me.png', '我的', 3),

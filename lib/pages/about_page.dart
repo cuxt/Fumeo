@@ -74,7 +74,7 @@ class _AboutPageState extends State<AboutPage> {
               const SizedBox(height: 20),
               // 简介
               const Text(
-                'Fumeo 是一款优秀的应用程序。',
+                'Fumeo 是一款优秀的应用程序',
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 16),
               ),

@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:fumeo/config.dart';
+import 'package:fumeo/pages/chat/chat_page.dart';
+import 'package:fumeo/pages/chat/setting/settings.dart';
 import 'package:fumeo/pages/home/home_page.dart';
 import 'package:fumeo/pages/nav/nav_page.dart';
 import 'package:fumeo/pages/settings_page.dart';
@@ -10,8 +13,9 @@ Future<void> main() async {
   await Hive.initFlutter();
   // open box
   await Hive.openBox('todo_box');
+  WidgetsFlutterBinding.ensureInitialized();
 
-  runApp(const MyApp());
+  Config.initialize().then((_) => runApp(const MyApp()));
 }
 
 class MyApp extends StatelessWidget {
@@ -21,11 +25,14 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       home: const NavPage(),
-      theme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(seedColor: Colors.orange)),
+      theme: ThemeData.light(),
+      darkTheme: ThemeData.dark(),
+      themeMode: ThemeMode.system,
       routes: {
         'home': (context) => const HomePage(),
+        'chat': (context) => const ChatPage(),
         'settings': (context) => const SettingsPage(),
+        'chat_settings': (context) => const ChatSettingsPage(),
         'todo': (context) => const TodoPage(),
       },
     );

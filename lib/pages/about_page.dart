@@ -45,95 +45,83 @@ class _AboutPageState extends State<AboutPage> {
         title: const Text('关于'),
       ),
       body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              // 应用图标
-              Image.asset(
-                'lib/images/logo.png',
-                width: 100,
-                height: 100,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            // 应用图标
+            Image.asset(
+              'lib/images/logo.png',
+              width: 100,
+              height: 100,
+            ),
+            const SizedBox(height: 20),
+            // 应用名称和版本
+            const Text(
+              'Fumeo',
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
               ),
-              const SizedBox(height: 20),
-              // 应用名称和版本
-              const Text(
-                'Fumeo',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                '版本 $_version',
-                style: const TextStyle(fontSize: 16),
-              ),
-              const SizedBox(height: 20),
-              // 简介
-              const Text(
-                'Fumeo 是一款优秀的应用程序',
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 16),
-              ),
-              const SizedBox(height: 20),
-              // 开发者信息
-              const Align(
-                alignment: Alignment.centerLeft, // 设置为左对齐
+            ),
+            const SizedBox(height: 8),
+            Text(
+              '版本 $_version',
+              style: const TextStyle(fontSize: 16),
+            ),
+            const SizedBox(height: 20),
+            // 简介
+            const Text(
+              'Fumeo 是一款优秀的应用程序',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 16),
+            ),
+            // 开发者信息
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 20),
+              child: Align(
+                alignment: Alignment.centerLeft, // 左对齐
                 child: Text(
-                  '开发者:',
+                  '开发者',
                   style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
+                      fontWeight: FontWeight.w200,
+                      color: Theme.of(context).colorScheme.primary),
                 ),
               ),
+            ),
 
-              const SizedBox(height: 10),
-              ..._developers.map((developer) {
-                return Column(
-                  children: [
-                    InkWell(
-                      onTap: () =>
-                          launchURL('https://github.com/${developer['name']}'),
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: Theme.of(context)
-                              .colorScheme
-                              .surfaceContainerHighest,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        height: 70,
-                        child: Row(
-                          children: [
-                            const SizedBox(width: 20),
-                            // 开发者头像
-                            CircleAvatar(
-                              radius: 20,
-                              backgroundImage:
-                                  NetworkImage(developer['avatar']!), // 使用网络头像
-                            ),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: Text(
-                                '${developer['nickname']} (${developer['name']})',
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                ),
-                              ),
-                            ),
-                          ],
+            // 开发者信息列表
+            ..._developers.map((developer) {
+              return InkWell(
+                onTap: () =>
+                    launchURL('https://github.com/${developer['name']}'),
+                borderRadius: BorderRadius.circular(12),
+                child: SizedBox(
+                  height: 70,
+                  child: Row(
+                    children: [
+                      const SizedBox(width: 20),
+                      // 开发者头像
+                      CircleAvatar(
+                        radius: 20,
+                        backgroundImage:
+                            NetworkImage(developer['avatar']!), // 使用网络头像
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          '${developer['nickname']} (${developer['name']})',
+                          style: const TextStyle(
+                            fontSize: 16,
+                          ),
                         ),
                       ),
-                    ),
-                    const SizedBox(height: 5),
-                  ],
-                );
-              }),
-            ],
-          ),
+                    ],
+                  ),
+                ),
+              );
+            }),
+          ],
         ),
       ),
     );

@@ -43,20 +43,14 @@ class _SideNavBarState extends State<SideNavBar> {
                 ),
               ),
               // 页面
-              ListTile(
-                leading: const Icon(
-                  Icons.info,
-                ),
-                title: const Text(
-                  '关于',
-                ),
+              _buildListTile(
+                icon: Icons.info,
+                title: '关于',
                 onTap: () {
                   Navigator.pop(context);
                   Navigator.push(
                     context,
-                    MaterialPageRoute(
-                        builder: (context) =>
-                            const AboutPage()),
+                    MaterialPageRoute(builder: (context) => const AboutPage()),
                   );
                 },
               ),
@@ -64,13 +58,9 @@ class _SideNavBarState extends State<SideNavBar> {
           ),
           Padding(
             padding: const EdgeInsets.only(bottom: 25.0),
-            child: ListTile(
-              leading: const Icon(
-                Icons.settings,
-              ),
-              title: const Text(
-                '设置',
-              ),
+            child: _buildListTile(
+              icon: Icons.settings,
+              title: '设置',
               onTap: () {
                 Navigator.pop(context);
                 Navigator.push(
@@ -81,6 +71,25 @@ class _SideNavBarState extends State<SideNavBar> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  // 构建带圆角的 ListTile
+  Widget _buildListTile({
+    required IconData icon,
+    required String title,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
+        child: ListTile(
+          leading: Icon(icon),
+          title: Text(title),
+        ),
       ),
     );
   }

@@ -23,7 +23,7 @@ class ChatSettingsPageState extends State<ChatSettingsPage> {
       length: tabItems.length,
       child: Scaffold(
         appBar: AppBar(
-          title: Text("Settings"),
+          title: Text("设置"),
           bottom: TabBar(
             tabs: tabItems.keys.map((title) => Tab(text: title)).toList(),
           ),

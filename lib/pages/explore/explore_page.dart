@@ -65,40 +65,30 @@ class _ExplorePageState extends State<ExplorePage> {
   }
 
   Widget _buildRow(ExploreItem item) {
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: InkWell(
-        onTap: item.onTap,
-        child: Container(
-          decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.surfaceContainerHighest,
-            borderRadius: BorderRadius.circular(12.0),
-          ),
-          height: 70.0,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                children: [
-                  const SizedBox(width: 16.0),
-                  Image.asset(
-                    item.logoPath,
-                    width: 24.0,
-                    height: 24.0,
-                  ),
-                  const SizedBox(width: 16.0),
-                  Text(
-                    item.title,
-                    style: const TextStyle(fontSize: 16),
-                  ),
-                ],
-              ),
-              const Padding(
-                padding: EdgeInsets.only(right: 16.0), // 右边距
-                child: Icon(Icons.chevron_right),
-              ),
-            ],
-          ),
+    return InkWell(
+      onTap: item.onTap,
+      borderRadius: BorderRadius.circular(12.0), // InkWell 圆角
+      child: SizedBox(
+        height: 70.0,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Row(
+              children: [
+                const SizedBox(width: 16.0),
+                Image.asset(
+                  item.logoPath,
+                  width: 24.0,
+                  height: 24.0,
+                ),
+                const SizedBox(width: 16.0),
+                Text(
+                  item.title,
+                  style: const TextStyle(fontSize: 16),
+                ),
+              ],
+            ),
+          ],
         ),
       ),
     );

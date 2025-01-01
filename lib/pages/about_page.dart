@@ -15,7 +15,7 @@ class _AboutPageState extends State<AboutPage> {
   final List<Map<String, String>> _developers = [
     {
       'name': 'zhoubinxin',
-      'nickname': 'bx',
+      'nickname': 'cuxt',
       'avatar': 'https://avatars.githubusercontent.com/u/123720843?v=4',
     },
     {

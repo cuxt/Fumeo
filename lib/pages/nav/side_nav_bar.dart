@@ -1,15 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:fumeo/pages/about_page.dart';
-import 'package:fumeo/pages/settings_page.dart';
+import 'package:fumeo/routes/routes.dart';
+import 'package:get/get.dart';
 
-class SideNavBar extends StatefulWidget {
+class SideNavBar extends StatelessWidget {
   const SideNavBar({super.key});
 
-  @override
-  State<SideNavBar> createState() => _SideNavBarState();
-}
-
-class _SideNavBarState extends State<SideNavBar> {
   @override
   Widget build(BuildContext context) {
     return Drawer(
@@ -42,16 +37,12 @@ class _SideNavBarState extends State<SideNavBar> {
                   ),
                 ),
               ),
-              // 页面
               _buildListTile(
                 icon: Icons.info,
                 title: '关于',
                 onTap: () {
-                  Navigator.pop(context);
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => const AboutPage()),
-                  );
+                  Get.back();
+                  Get.toNamed(Routes.about);
                 },
               ),
             ],
@@ -62,11 +53,8 @@ class _SideNavBarState extends State<SideNavBar> {
               icon: Icons.settings,
               title: '设置',
               onTap: () {
-                Navigator.pop(context);
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const SettingsPage()),
-                );
+                Get.back();
+                Get.toNamed(Routes.settings);
               },
             ),
           ),
@@ -75,7 +63,6 @@ class _SideNavBarState extends State<SideNavBar> {
     );
   }
 
-  // 构建带圆角的 ListTile
   Widget _buildListTile({
     required IconData icon,
     required String title,

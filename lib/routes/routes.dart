@@ -7,7 +7,7 @@ import 'package:fumeo/pages/about/about.dart';
 import 'package:fumeo/pages/explore/explore.dart';
 import 'package:fumeo/pages/mine/mine.dart';
 import 'package:fumeo/pages/nav/nav.dart';
-import 'package:fumeo/pages/note/note_list.dart';
+import 'package:fumeo/pages/note/note.dart';
 import 'package:fumeo/pages/settings/settings.dart';
 import 'package:fumeo/pages/todo/todo.dart';
 import 'package:get/get.dart';
@@ -50,6 +50,6 @@ abstract class Routes {
       name: mine,
       page: () => const MineView(),
     ),
-    GetPage(name: note, page: () => NoteListView(), binding: NoteBinding())
+    GetPage(name: note, page: () => NoteView(), binding: NoteBinding())
   ];
 }

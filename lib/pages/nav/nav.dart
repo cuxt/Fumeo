@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:fumeo/controllers/nav.dart';
 import 'package:fumeo/pages/explore/explore.dart';
-import 'package:fumeo/pages/home/home.dart';
 import 'package:fumeo/pages/mine/mine.dart';
 import 'package:fumeo/pages/nav/bottom_nav_bar.dart';
+import 'package:fumeo/pages/note/note.dart';
 import 'package:fumeo/pages/todo/todo.dart';
 import 'package:get/get.dart';
 
@@ -11,7 +11,8 @@ class NavView extends GetView<NavController> {
   NavView({super.key});
 
   final List<Widget> _pages = [
-    const HomeView(),
+    // const HomeView(),
+    NoteView(),
     const TodoView(),
     const ExploreView(),
     const MineView(),
@@ -32,7 +33,7 @@ class NavView extends GetView<NavController> {
       },
       child: Scaffold(
         body: Obx(
-              () => IndexedStack(
+          () => IndexedStack(
             index: controller.currentIndex,
             children: _pages,
           ),

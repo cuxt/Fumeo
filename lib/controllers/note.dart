@@ -1,19 +1,16 @@
+import 'package:flutter/material.dart';
 import 'package:fumeo/pages/note/database/database.dart';
 import 'package:fumeo/pages/note/models/note.dart';
 import 'package:get/get.dart';
 
-/// 笔记控制器类
 class NoteController extends GetxController {
-  // 笔记列表observable
   var notes = <Note>[].obs;
-
-  // 搜索关键词observable
   var searchQuery = ''.obs;
-
-  // 是否正在搜索observable
   var isSearching = false.obs;
+  Rx<Note?> selectedNote = Rx<Note?>(null);
+  var currentView = 0.obs; // 0:列表，1:编辑
+  var isEditing = false.obs;
 
-  // 数据库服务实例
   final DatabaseService _databaseService = DatabaseService.instance;
 
   @override
@@ -22,59 +19,110 @@ class NoteController extends GetxController {
     loadNotes();
   }
 
-  /// 加载所有笔记
+  void selectNote(Note note) {
+    selectedNote.value = note;
+    currentView.value = 1; // 切换到编辑视图
+  }
+
+  void createNewNote() {
+    // 如果正在编辑且内容未保存
+    if (isEditing.value) {
+      Get.dialog(
+        AlertDialog(
+          title: Text('创建新笔记'),
+          content: Text('当前笔记未保存，是否继续？'),
+          actions: [
+            TextButton(
+              child: Text('取消'),
+              onPressed: () => Get.back(),
+            ),
+            TextButton(
+              child: Text('继续'),
+              onPressed: () {
+                Get.back();
+                _createNew();
+              },
+            ),
+          ],
+        ),
+      );
+    } else {
+      _createNew();
+    }
+  }
+
+  void _createNew() {
+    final note = Note(
+      id: DateTime.now().millisecondsSinceEpoch.toString(),
+      title: '',
+      content: '',
+      createTime: DateTime.now(),
+      wordCount: 0,
+    );
+    selectedNote.value = note;
+    currentView.value = 1;
+    isEditing.value = false;
+  }
+
   Future<void> loadNotes() async {
     try {
       final notesList = await _databaseService.readAllNotes();
       notes.assignAll(notesList);
+      if (notes.isNotEmpty && selectedNote.value == null) {
+        selectedNote.value = notes.first;
+      }
     } catch (e) {
       Get.snackbar('错误', '加载笔记失败: ${e.toString()}');
     }
   }
 
-  /// 添加笔记
-  Future<void> addNote(String title, String content) async {
+  Future<void> addNote(String title, String content, int wordCount) async {
     try {
       final note = Note(
         id: DateTime.now().millisecondsSinceEpoch.toString(),
         title: title,
         content: content,
         createTime: DateTime.now(),
+        wordCount: wordCount,
       );
       await _databaseService.create(note);
       await loadNotes();
+      selectedNote.value = note;
     } catch (e) {
       Get.snackbar('错误', '添加笔记失败: ${e.toString()}');
     }
   }
 
-  /// 更新笔记
-  Future<void> updateNote(String id, String title, String content) async {
+  Future<void> updateNote(
+      String id, String title, String content, int wordCount) async {
     try {
       final note = Note(
         id: id,
         title: title,
         content: content,
         createTime: DateTime.now(),
+        wordCount: wordCount,
       );
       await _databaseService.update(note);
       await loadNotes();
+      selectedNote.value = note;
     } catch (e) {
       Get.snackbar('错误', '更新笔记失败: ${e.toString()}');
     }
   }
 
-  /// 删除笔记
   Future<void> deleteNote(String id) async {
     try {
       await _databaseService.delete(id);
+      if (selectedNote.value?.id == id) {
+        selectedNote.value = null;
+      }
       await loadNotes();
     } catch (e) {
       Get.snackbar('错误', '删除笔记失败: ${e.toString()}');
     }
   }
 
-  /// 搜索笔记
   Future<void> searchNotes(String query) async {
     try {
       searchQuery.value = query;

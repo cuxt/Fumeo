@@ -838,10 +838,10 @@ packages:
     dependency: transitive
     description:
       name: shared_preferences_android
-      sha256: bf808be89fe9dc467475e982c1db6c2faf3d2acf54d526cd5ec37d86c99dbd84
+      sha256: "138b7bbbc7f59c56236e426c37afb8f78cbc57b094ac64c440e0bb90e380a4f5"
       url: "https://mirrors.tuna.tsinghua.edu.cn/dart-pub/"
     source: hosted
-    version: "2.4.1"
+    version: "2.4.2"
   shared_preferences_foundation:
     dependency: transitive
     description:
@@ -1147,10 +1147,10 @@ packages:
     dependency: transitive
     description:
       name: webview_flutter_android
-      sha256: d1ee28f44894cbabb1d94cc42f9980297f689ff844d067ec50ff88d86e27d63f
+      sha256: "5568f17a9c25c0fdd0737900fa1c2d1fee2d780bc212d9aec10c2d1f48ef0f59"
       url: "https://mirrors.tuna.tsinghua.edu.cn/dart-pub/"
     source: hosted
-    version: "4.3.0"
+    version: "4.3.1"
   webview_flutter_platform_interface:
     dependency: transitive
     description:

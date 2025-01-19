@@ -12,74 +12,93 @@ class AboutView extends GetView<AboutController> {
       appBar: AppBar(
         title: const Text('关于'),
       ),
-      body: Center(
+      body: SingleChildScrollView(
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Image.asset(
-              'lib/images/logo.png',
-              width: 100,
-              height: 100,
-            ),
-            const SizedBox(height: 20),
-            const Text(
-              'Fumeo',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Obx(() => Text(
-                  '版本 ${controller.packageInfo.value?.version}(${controller.packageInfo.value?.buildNumber})',
-                  style: const TextStyle(fontSize: 16),
-                )),
-            const SizedBox(height: 20),
-            const Text(
-              'Fumeo 是一款优秀的应用程序',
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 16),
-            ),
             Padding(
-              padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 20),
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  '开发者',
-                  style: TextStyle(
-                    fontWeight: FontWeight.w200,
-                    color: Theme.of(context).colorScheme.primary,
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  const SizedBox(height: 40),
+                  Image.asset(
+                    'lib/images/logo.png',
+                    width: 60,
+                    height: 60,
                   ),
-                ),
-              ),
-            ),
-            ...controller.developers.map((developer) {
-              return InkWell(
-                onTap: () =>
-                    launchURL('https://github.com/${developer['name']}'),
-                borderRadius: BorderRadius.circular(12),
-                child: SizedBox(
-                  height: 70,
-                  child: Row(
-                    children: [
-                      const SizedBox(width: 20),
-                      CircleAvatar(
-                        radius: 20,
-                        backgroundImage: NetworkImage(developer['avatar']!),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Text(
-                          '${developer['nickname']} (${developer['name']})',
-                          style: const TextStyle(fontSize: 16),
+                  const SizedBox(height: 10),
+                  const Text(
+                    'Fumeo',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Obx(() => Text(
+                        '${controller.packageInfo.value?.version}-${controller.packageInfo.value?.buildNumber}',
+                        style: const TextStyle(fontSize: 14),
+                      )),
+                  const SizedBox(height: 20),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 20),
+                      child: Text(
+                        '作者',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w200,
+                          color: Theme.of(context).colorScheme.primary,
                         ),
                       ),
-                    ],
+                    ),
                   ),
-                ),
-              );
-            }),
+                  ...controller.developers.map((developer) {
+                    return InkWell(
+                      onTap: () =>
+                          launchURL('https://github.com/${developer['name']}'),
+                      borderRadius: BorderRadius.circular(12),
+                      child: SizedBox(
+                        height: 70,
+                        child: Row(
+                          children: [
+                            const SizedBox(width: 10),
+                            CircleAvatar(
+                              radius: 20,
+                              backgroundImage:
+                                  NetworkImage(developer['avatar']!),
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Text(
+                                developer['nickname']!,
+                                style: const TextStyle(fontSize: 16),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  }),
+                ],
+              ),
+            ),
+
+            // 底部版权信息
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 40),
+              child: Column(
+                children: [
+                  Text(
+                    '© ${DateTime.now().year} cuxt. All rights reserved.',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Theme.of(context).colorScheme.outline,
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ],
         ),
       ),

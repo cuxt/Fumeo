@@ -8,7 +8,7 @@ class NoteController extends GetxController {
   var searchQuery = ''.obs;
   var isSearching = false.obs;
   Rx<Note?> selectedNote = Rx<Note?>(null);
-  var currentView = 0.obs; // 0:列表，1:编辑
+  var currentView = 0.obs; // 0:笔记，1:编辑
   var isEditing = false.obs;
 
   final DatabaseService _databaseService = DatabaseService.instance;

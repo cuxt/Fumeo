@@ -71,7 +71,7 @@ class SideNavBar extends StatelessWidget {
   }
 
   Widget _buildListTile({
-    required Widget icon, // 修改类型为 Widget
+    required Widget icon,
     required String title,
     required VoidCallback onTap,
   }) {
@@ -81,7 +81,7 @@ class SideNavBar extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
         child: ListTile(
-          leading: icon, // 直接使用传入的 icon widget
+          leading: icon,
           title: Text(title),
         ),
       ),

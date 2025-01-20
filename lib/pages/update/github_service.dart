@@ -41,13 +41,16 @@ class GithubService {
         }
         bool hasUpdate = _compareVersions(currentVersion, latestVersion);
 
-        if (hasUpdate) {
+        if (hasUpdate || kDebugMode) {
           String? downloadUrl;
           List assets = releaseInfo['assets'];
           for (var asset in assets) {
             if (Platform.isAndroid &&
                 asset['name'].toString().endsWith('.apk')) {
               downloadUrl = asset['browser_download_url'];
+              if (kDebugMode) {
+                print(downloadUrl);
+              }
               break;
             } else if (Platform.isIOS &&
                 asset['name'].toString().endsWith('.ipa')) {

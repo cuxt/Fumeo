@@ -79,5 +79,6 @@ jobs:
             build/app/outputs/flutter-apk/*.apk
             web.zip
           body: ${{ env.changelog }}
+          generate_release_notes: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

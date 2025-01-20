@@ -61,9 +61,7 @@ jobs:
         id: changelog
         run: |
           changelog=$(git log --pretty=format:"- %s" $(git describe --tags --abbrev=0)..HEAD)
-          echo "changelog<<EOF" >> $GITHUB_ENV
-          echo "$changelog" >> $GITHUB_ENV
-          echo "EOF" >> $GITHUB_ENV
+          echo "::set-output name=changelog::$changelog"
 
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v4
@@ -80,7 +78,7 @@ jobs:
             web.zip
           body: |
             由提交 ${{ github.sha }} 自动触发编译生成的 Release
-            ${{ env.changelog }}
+            ${{ steps.changelog.outputs.changelog }}
           draft: false
           prerelease: false
         env:

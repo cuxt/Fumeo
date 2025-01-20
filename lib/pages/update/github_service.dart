@@ -2,7 +2,6 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:package_info_plus/package_info_plus.dart';
-import 'dart:io';
 import 'package:dio/dio.dart';
 
 class GithubService {
@@ -42,20 +41,17 @@ class GithubService {
         bool hasUpdate = _compareVersions(currentVersion, latestVersion);
 
         if (hasUpdate || kDebugMode) {
-          String? downloadUrl;
+          // 获取所有下载地址
+          List<Map<String, String>> downloadUrls = [];
           List assets = releaseInfo['assets'];
           for (var asset in assets) {
-            if (Platform.isAndroid &&
-                asset['name'].toString().endsWith('.apk')) {
-              downloadUrl = asset['browser_download_url'];
-              if (kDebugMode) {
-                print(downloadUrl);
-              }
-              break;
-            } else if (Platform.isIOS &&
-                asset['name'].toString().endsWith('.ipa')) {
-              downloadUrl = asset['browser_download_url'];
-              break;
+            String name = asset['name'].toString();
+            String url = asset['browser_download_url'];
+            if (name.endsWith('.apk') || name.endsWith('.ipa')) {
+              downloadUrls.add({
+                'name': name,
+                'url': url,
+              });
             }
           }
 
@@ -63,7 +59,7 @@ class GithubService {
             'hasUpdate': true,
             'version': latestVersion,
             'description': releaseInfo['body'] ?? '无更新说明',
-            'downloadUrl': downloadUrl,
+            'downloadUrls': downloadUrls,
           };
         }
         return {'hasUpdate': false};

@@ -5,6 +5,8 @@ import 'package:get/get.dart';
 import 'package:hive_ce_flutter/adapters.dart';
 
 Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
   await Hive.initFlutter();
   await Hive.openBox('todo_box');
 
@@ -21,7 +23,7 @@ class App extends StatelessWidget {
       theme: ThemeData.light(),
       darkTheme: ThemeData.dark(),
       initialBinding: AppBinding(),
-      initialRoute: '/',
+      initialRoute: '/note',
       getPages: Routes.routes,
     );
   }

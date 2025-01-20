@@ -35,7 +35,7 @@ jobs:
           KEY_PATH: key.jks
 
       - name: Build Web
-        run: flutter build web --web-renderer html
+        run: flutter build web
 
       - name: Zip Web Build
         run: zip -r web.zip ./build/web
@@ -78,8 +78,8 @@ jobs:
           files: |
             build/app/outputs/flutter-apk/*.apk
             web.zip
-          body: ${{ env.changelog }}
-          generate_release_notes: true
-          append_body: true
+          body: |
+            ${{ env.changelog }}
+          draft: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

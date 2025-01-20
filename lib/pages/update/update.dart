@@ -5,6 +5,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:open_file/open_file.dart';
 import 'dart:io';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
 
 class UpdateDialog extends StatefulWidget {
   final Map<String, dynamic> updateInfo;
@@ -29,7 +30,24 @@ class UpdateDialogState extends State<UpdateDialog> {
         children: [
           Text('最新版本: ${widget.updateInfo['version']}'),
           const SizedBox(height: 8),
-          Text('更新内容:\n${widget.updateInfo['description']}'),
+          ConstrainedBox(
+            constraints: BoxConstraints(
+              maxHeight: MediaQuery.of(context).size.height * 0.4,
+              maxWidth: MediaQuery.of(context).size.width * 0.8,
+            ),
+            child: SingleChildScrollView(
+              child: MarkdownBody( // 使用 MarkdownBody 替代 Markdown
+                data: widget.updateInfo['description'],
+                styleSheet: MarkdownStyleSheet(
+                  p: const TextStyle(fontSize: 14),
+                  h1: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  h2: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  h3: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  listBullet: const TextStyle(fontSize: 14),
+                ),
+              ),
+            ),
+          ),
           if (_downloading) ...[
             const SizedBox(height: 16),
             LinearProgressIndicator(value: _progress),

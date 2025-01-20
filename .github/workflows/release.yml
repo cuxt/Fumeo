@@ -14,6 +14,7 @@ jobs:
         uses: actions/setup-java@v4
         with:
           java-version: '21'
+          distribution: 'temurin'
 
       - name: Decode signing key
         run: echo $SIGNING_KEY | base64 -d > android/app/key.jks

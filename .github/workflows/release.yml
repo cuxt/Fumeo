@@ -79,7 +79,9 @@ jobs:
             build/app/outputs/flutter-apk/*.apk
             web.zip
           body: |
+            由提交 ${{ github.sha }} 自动触发编译生成的 Release
             ${{ env.changelog }}
           draft: false
+          prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

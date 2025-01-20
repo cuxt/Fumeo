@@ -2,7 +2,7 @@ name: fumeo
 description: 'Fumeo'
 publish_to: 'none'
 
-version: 1.0.9+13
+version: 1.0.10+13
 
 environment:
   sdk: ^3.6.1

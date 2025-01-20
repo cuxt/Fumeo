@@ -1,0 +1,82 @@
+name: "release"
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  release-to-gitHub:
+    name: release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+
+      - name: Decode signing key
+        run: echo $SIGNING_KEY | base64 -d > android/app/key.jks
+        env:
+          SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
+
+      - uses: subosito/flutter-action@v2
+
+      - name: Get Flutter packages
+        run: flutter pub get
+
+      - name: Build APK
+        run: flutter build apk --split-per-abi
+        env:
+          KEY_STORE_PASSWORD: ${{ secrets.KEY_STORE_PASSWORD }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+          ALIAS: ${{ secrets.ALIAS }}
+          KEY_PATH: key.jks
+
+      - name: Build Web
+        run: flutter build web
+
+      - name: Zip Web Build
+        run: zip -r web.zip ./build/web
+
+      - name: Extract version from pubspec.yaml
+        id: extract_version
+        run: |
+          version=$(grep '^version: ' pubspec.yaml | sed 's/version: //')
+          tag=v${version%%+*}
+          echo "version=$version" >> $GITHUB_ENV
+          echo "tag=$tag" >> $GITHUB_ENV
+
+      - name: Create GitHub Tag
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag ${{ env.tag }}
+          git push origin ${{ env.tag }}
+
+      - name: Generate Changelog
+        id: changelog
+        run: |
+          changelog=$(git log --pretty=format:"- %s" $(git describe --tags --abbrev=0)..HEAD)
+          echo "changelog<<EOF" >> $GITHUB_ENV
+          echo "$changelog" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+
+      - name: Deploy
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./build/web
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ env.tag }}
+          files: |
+            build/app/outputs/flutter-apk/*.apk
+            web.zip
+          body: ${{ env.changelog }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

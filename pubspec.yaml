@@ -2,7 +2,7 @@ name: fumeo
 description: 'Fumeo'
 publish_to: 'none'
 
-version: 1.0.12+15
+version: 1.0.13+16
 
 environment:
   sdk: ^3.6.1
@@ -38,6 +38,7 @@ dependencies:
   open_file: ^3.5.10
   permission_handler: ^11.3.1
   path: ^1.9.0
+  flutter_syntax_view: ^4.1.4
 
 dev_dependencies:
   flutter_test:

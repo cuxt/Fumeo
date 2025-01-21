@@ -61,12 +61,14 @@ jobs:
         id: changelog
         run: |
           changelog=$(git log --pretty=format:"- %s" $(git describe --tags --abbrev=0)..HEAD)
-          echo "::set-output name=changelog::$changelog"
+          echo "changelog<<EOF" >> $GITHUB_ENV
+          echo "$changelog" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
 
       - name: Output Changelog
         run: |
           echo "The changelog is:"
-          echo "${{ steps.changelog.outputs.changelog }}"
+          echo "${{ env.changelog }}"
 
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v4
@@ -83,7 +85,8 @@ jobs:
             web.zip
           body: |
             由提交 ${{ github.sha }} 自动触发编译生成的 Release
-            更新内容：${{ steps.changelog.outputs.changelog }}
+            
+            更新内容： ${{ env.changelog }}
           draft: false
           prerelease: false
         env:
@@ -101,7 +104,7 @@ jobs:
           r2-secret-access-key: ${{ secrets.R2_SECRET_ACCESS_KEY }}
           r2-bucket: ${{ secrets.R2_BUCKET }}
           source-dir: build/app/outputs/flutter-apk/${{ env.tag }}.apk
-          destination-dir: /
+          destination-dir: app/fumeo
           output-file-url: true
           multipart-size: 100
           max-retries: 5

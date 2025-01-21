@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:fumeo/controllers/note.dart';
 import 'package:fumeo/pages/nav/side_nav_bar.dart';
+import 'package:fumeo/pages/note/markdown_preview.dart';
 import 'package:fumeo/pages/note/note_edit_panel.dart';
 import 'package:fumeo/pages/note/note_list_panel.dart';
 import 'package:get/get.dart';
@@ -26,6 +27,11 @@ class NoteView extends StatelessWidget {
                   style: HeroIconStyle.outline,
                 ),
               ),
+            ),
+            // 占位
+            const IconButton(
+              onPressed: null,
+              icon: Icon(null),
             ),
             Expanded(
               child: Center(
@@ -74,10 +80,51 @@ class NoteView extends StatelessWidget {
                     )),
               ),
             ),
-            // 占位
-            const IconButton(
-              onPressed: null,
-              icon: Icon(null),
+            // MD 渲染按钮
+            Material(
+              color: Colors.transparent,
+              child: Ink(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: IconButton(
+                  onPressed: () {
+                    if (noteController.selectedNote.value != null) {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => MarkdownPreviewPage(
+                            note: noteController.selectedNote.value!,
+                          ),
+                        ),
+                      );
+                    } else {
+                      Get.snackbar('提示', '请先选择一个笔记');
+                    }
+                  },
+                  icon: const HeroIcon(
+                    HeroIcons.sparkles,
+                    style: HeroIconStyle.outline,
+                  ),
+                  splashRadius: 20,
+                ),
+              ),
+            ),
+            // 下拉菜单
+            Material(
+              color: Colors.transparent,
+              child: Ink(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: IconButton(
+                  onPressed: () {},
+                  icon: const HeroIcon(
+                    HeroIcons.ellipsisVertical,
+                    style: HeroIconStyle.outline,
+                  ),
+                  splashRadius: 20,
+                ),
+              ),
             ),
           ],
         ),

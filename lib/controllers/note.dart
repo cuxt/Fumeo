@@ -11,41 +11,46 @@ class NoteController extends GetxController {
   var currentView = 0.obs; // 0:笔记，1:编辑
   var isEditing = false.obs;
 
+  late PageController pageController;
+
   final DatabaseService _databaseService = DatabaseService.instance;
 
   @override
   void onInit() {
     super.onInit();
+    pageController = PageController(initialPage: 0);
     loadNotes();
+  }
+
+  @override
+  void onClose() {
+    pageController.dispose();
+    super.onClose();
   }
 
   void selectNote(Note note) {
     selectedNote.value = note;
     currentView.value = 1; // 切换到编辑视图
+    isEditing.value = false; // 选择笔记时，重置编辑状态
+    jumpToPage(1);
+  }
+
+  void jumpToPage(int page) {
+    if (pageController.hasClients) {
+      pageController.animateToPage(
+        page,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
+    }
   }
 
   void createNewNote() {
-    // 如果正在编辑且内容未保存
+    // 如果当前正在编辑且内容未保存
     if (isEditing.value) {
-      Get.dialog(
-        AlertDialog(
-          title: Text('创建新笔记'),
-          content: Text('当前笔记未保存，是否继续？'),
-          actions: [
-            TextButton(
-              child: Text('取消'),
-              onPressed: () => Get.back(),
-            ),
-            TextButton(
-              child: Text('继续'),
-              onPressed: () {
-                Get.back();
-                _createNew();
-              },
-            ),
-          ],
-        ),
-      );
+      _showUnsavedChangesDialog(() {
+        _createNew();
+      });
     } else {
       _createNew();
     }
@@ -61,15 +66,45 @@ class NoteController extends GetxController {
     );
     selectedNote.value = note;
     currentView.value = 1;
-    isEditing.value = false;
+    isEditing.value = true; // 创建新笔记时，设置为编辑状态
+    jumpToPage(1);
+  }
+
+  // 保存前确认对话框
+  void _showUnsavedChangesDialog(VoidCallback onContinue) {
+    Get.dialog(
+      AlertDialog(
+        title: const Text('创建新笔记'),
+        content: const Text('当前笔记未保存，是否继续？'),
+        actions: [
+          TextButton(
+            child: const Text('取消'),
+            onPressed: () => Get.back(),
+          ),
+          TextButton(
+            child: const Text('继续'),
+            onPressed: () {
+              Get.back();
+              onContinue();
+            },
+          ),
+        ],
+      ),
+    );
   }
 
   Future<void> loadNotes() async {
     try {
       final notesList = await _databaseService.readAllNotes();
       notes.assignAll(notesList);
-      if (notes.isNotEmpty && selectedNote.value == null) {
+
+      // 如果当前没有选中的笔记，并且列表不为空，默认选中第一条
+      if (selectedNote.value == null && notes.isNotEmpty) {
         selectedNote.value = notes.first;
+      }
+      // 如果列表为空，清空选中
+      if (notes.isEmpty) {
+        selectedNote.value = null;
       }
     } catch (e) {
       Get.snackbar('错误', '加载笔记失败: ${e.toString()}');
@@ -88,6 +123,7 @@ class NoteController extends GetxController {
       await _databaseService.create(note);
       await loadNotes();
       selectedNote.value = note;
+      isEditing.value = false; // 添加笔记后，重置编辑状态
     } catch (e) {
       Get.snackbar('错误', '添加笔记失败: ${e.toString()}');
     }
@@ -106,6 +142,7 @@ class NoteController extends GetxController {
       await _databaseService.update(note);
       await loadNotes();
       selectedNote.value = note;
+      isEditing.value = false; // 更新笔记后，重置编辑状态
     } catch (e) {
       Get.snackbar('错误', '更新笔记失败: ${e.toString()}');
     }
@@ -124,8 +161,8 @@ class NoteController extends GetxController {
   }
 
   Future<void> searchNotes(String query) async {
+    searchQuery.value = query;
     try {
-      searchQuery.value = query;
       if (query.isEmpty) {
         await loadNotes();
         return;

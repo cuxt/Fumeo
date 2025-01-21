@@ -63,6 +63,11 @@ jobs:
           changelog=$(git log --pretty=format:"- %s" $(git describe --tags --abbrev=0)..HEAD)
           echo "::set-output name=changelog::$changelog"
 
+      - name: Output Changelog
+        run: |
+          echo "The changelog is:"
+          echo "${{ steps.changelog.outputs.changelog }}"
+
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v4
         with:
@@ -78,8 +83,27 @@ jobs:
             web.zip
           body: |
             由提交 ${{ github.sha }} 自动触发编译生成的 Release
-            ${{ steps.changelog.outputs.changelog }}
+            更新内容：${{ steps.changelog.outputs.changelog }}
           draft: false
           prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Rename APK
+        run: |
+          mv build/app/outputs/flutter-apk/app-arm64-v8a-release.apk build/app/outputs/flutter-apk/${{ env.tag }}.apk
+
+      - name: Upload to R2
+        uses: ryand56/r2-upload-action@latest
+        with:
+          r2-account-id: ${{ secrets.R2_ACCOUNT_ID }}
+          r2-access-key-id: ${{ secrets.R2_ACCESS_KEY_ID }}
+          r2-secret-access-key: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          r2-bucket: ${{ secrets.R2_BUCKET }}
+          source-dir: build/app/outputs/flutter-apk/${{ env.tag }}.apk
+          destination-dir: /
+          output-file-url: true
+          multipart-size: 100
+          max-retries: 5
+          multipart-concurrent: true
+          keep-file-fresh: false

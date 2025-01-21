@@ -8,7 +8,6 @@ import 'package:heroicons/heroicons.dart';
 
 class NoteView extends StatelessWidget {
   final NoteController noteController = Get.find();
-  final PageController _pageController = PageController();
 
   NoteView({super.key});
 
@@ -22,7 +21,7 @@ class NoteView extends StatelessWidget {
             Builder(
               builder: (context) => IconButton(
                 onPressed: () => Scaffold.of(context).openDrawer(),
-                icon: HeroIcon(
+                icon: const HeroIcon(
                   HeroIcons.bars3,
                   style: HeroIconStyle.outline,
                 ),
@@ -64,11 +63,7 @@ class NoteView extends StatelessWidget {
                         selected: {noteController.currentView.value},
                         onSelectionChanged: (Set<int> newSelection) {
                           noteController.currentView.value = newSelection.first;
-                          _pageController.animateToPage(
-                            newSelection.first,
-                            duration: const Duration(milliseconds: 300),
-                            curve: Curves.easeInOut,
-                          );
+                          noteController.jumpToPage(newSelection.first);
                         },
                         style: ButtonStyle(
                           backgroundColor:
@@ -89,7 +84,7 @@ class NoteView extends StatelessWidget {
       ),
       drawer: const SideNavBar(),
       body: PageView(
-        controller: _pageController,
+        controller: noteController.pageController,
         onPageChanged: (index) {
           noteController.currentView.value = index;
         },

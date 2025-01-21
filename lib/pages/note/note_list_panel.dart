@@ -14,18 +14,20 @@ class NoteListPanel extends StatelessWidget {
     return Column(
       children: [
         Padding(
-          padding: EdgeInsets.all(8.0),
-          child: noteController.isSearching.value
+          padding: const EdgeInsets.all(8.0),
+          child: Obx(() => noteController.isSearching.value
               ? _buildSearchField()
               : Row(
                   children: [
-                    Expanded(child: Container()),
+                    const Expanded(child: SizedBox()),
                     IconButton(
-                      icon: Icon(Icons.search),
-                      onPressed: () => noteController.isSearching.toggle(),
+                      icon: const Icon(Icons.search),
+                      onPressed: () {
+                        noteController.isSearching.value = true;
+                      },
                     ),
                   ],
-                ),
+                )),
         ),
         Expanded(
           child: Obx(() => noteController.notes.isEmpty
@@ -37,15 +39,27 @@ class NoteListPanel extends StatelessWidget {
   }
 
   Widget _buildSearchField() {
-    return TextField(
-      autofocus: true,
-      decoration: InputDecoration(
-        hintText: '搜索笔记...',
-        border: InputBorder.none,
-        hintStyle: TextStyle(color: Colors.white70),
-      ),
-      style: TextStyle(color: Colors.white),
-      onChanged: (value) => noteController.searchNotes(value),
+    return Row(
+      children: [
+        Expanded(
+          child: TextField(
+            autofocus: true,
+            decoration: const InputDecoration(
+              hintText: '搜索笔记...',
+              border: InputBorder.none,
+            ),
+            onChanged: (value) => noteController.searchNotes(value),
+          ),
+        ),
+        IconButton(
+          icon: const Icon(Icons.close),
+          onPressed: () {
+            noteController.isSearching.value = false;
+            noteController.searchQuery.value = '';
+            noteController.searchNotes('');
+          },
+        ),
+      ],
     );
   }
 
@@ -54,12 +68,12 @@ class NoteListPanel extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.note, size: 48, color: Colors.grey),
-          SizedBox(height: 16),
-          Text(
-            noteController.searchQuery.isEmpty ? '暂无笔记' : '未找到相关笔记',
-            style: TextStyle(color: Colors.grey),
-          ),
+          const Icon(Icons.note, size: 48, color: Colors.grey),
+          const SizedBox(height: 16),
+          Obx(() => Text(
+                noteController.searchQuery.isEmpty ? '暂无笔记' : '未找到相关笔记',
+                style: const TextStyle(color: Colors.grey),
+              )),
         ],
       ),
     );
@@ -88,7 +102,7 @@ class NoteListPanel extends StatelessWidget {
                   ),
                   Text(
                     DateFormat('yyyy-MM-dd HH:mm').format(note.createTime),
-                    style: TextStyle(fontSize: 12),
+                    style: const TextStyle(fontSize: 12),
                   ),
                 ],
               ),
@@ -98,8 +112,8 @@ class NoteListPanel extends StatelessWidget {
                   PopupMenuItem(
                     value: 'delete',
                     child: ListTile(
-                      leading: Icon(Icons.delete, color: Colors.red),
-                      title: Text('删除'),
+                      leading: const Icon(Icons.delete, color: Colors.red),
+                      title: const Text('删除'),
                     ),
                   ),
                 ],
@@ -117,15 +131,15 @@ class NoteListPanel extends StatelessWidget {
   void _showDeleteDialog(Note note) {
     Get.dialog(
       AlertDialog(
-        title: Text('确认删除'),
-        content: Text('确定要删除这条笔记吗？'),
+        title: const Text('确认删除'),
+        content: const Text('确定要删除这条笔记吗？'),
         actions: [
           TextButton(
-            child: Text('取消'),
+            child: const Text('取消'),
             onPressed: () => Get.back(),
           ),
           TextButton(
-            child: Text('删除', style: TextStyle(color: Colors.red)),
+            child: const Text('删除', style: TextStyle(color: Colors.red)),
             onPressed: () {
               noteController.deleteNote(note.id);
               Get.back();

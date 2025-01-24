@@ -21,7 +21,6 @@ class UpdateDialogState extends State<UpdateDialog> {
   bool _downloading = false;
   String? _selectedDownloadUrl;
   String _currentDescription = '';
-  bool _isCustomServer = false;
 
   @override
   void initState() {
@@ -43,7 +42,6 @@ class UpdateDialogState extends State<UpdateDialog> {
       _currentDescription = _getArchitectureDescription(
           downloadUrls.first['name'] ?? '',
           downloadUrls.first['isCustom'] == 'true');
-      _isCustomServer = downloadUrls.first['isCustom'] == 'true';
     }
   }
 
@@ -74,7 +72,7 @@ class UpdateDialogState extends State<UpdateDialog> {
 
   String _getArchitectureDescription(String fileName, bool isCustom) {
     if (isCustom) {
-      return '自建线路，适用于搭载ARM64处理器的设备（版本可能不会及时更新）';
+      return '自建线路，适用于搭载ARM64处理器的设备';
     }
 
     if (fileName.toLowerCase().endsWith('.apk')) {
@@ -104,6 +102,9 @@ class UpdateDialogState extends State<UpdateDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     String version = widget.updateInfo['version'] as String;
     String customUrl = 'https://cloud.xbxin.com/app/fumeo/v$version.apk';
 
@@ -117,12 +118,17 @@ class UpdateDialogState extends State<UpdateDialog> {
     ];
 
     return AlertDialog(
-      title: const Text('发现新版本'),
+      backgroundColor: theme.dialogBackgroundColor,
+      title: Text('发现新版本',
+          style: TextStyle(color: theme.textTheme.titleLarge?.color)),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('最新版本: ${widget.updateInfo['version']}'),
+          Text(
+            '最新版本: ${widget.updateInfo['version']}',
+            style: TextStyle(color: theme.textTheme.bodyLarge?.color),
+          ),
           const SizedBox(height: 8),
           ConstrainedBox(
             constraints: BoxConstraints(
@@ -133,25 +139,41 @@ class UpdateDialogState extends State<UpdateDialog> {
               child: MarkdownBody(
                 data: widget.updateInfo['description'],
                 styleSheet: MarkdownStyleSheet(
-                  p: const TextStyle(fontSize: 14),
-                  h1: const TextStyle(
-                      fontSize: 20, fontWeight: FontWeight.bold),
-                  h2: const TextStyle(
-                      fontSize: 18, fontWeight: FontWeight.bold),
-                  h3: const TextStyle(
-                      fontSize: 16, fontWeight: FontWeight.bold),
-                  listBullet: const TextStyle(fontSize: 14),
+                  p: TextStyle(
+                    fontSize: 14,
+                    color: theme.textTheme.bodyMedium?.color,
+                  ),
+                  h1: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: theme.textTheme.titleLarge?.color,
+                  ),
+                  h2: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: theme.textTheme.titleMedium?.color,
+                  ),
+                  h3: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: theme.textTheme.titleSmall?.color,
+                  ),
+                  listBullet: TextStyle(
+                    fontSize: 14,
+                    color: theme.textTheme.bodyMedium?.color,
+                  ),
                 ),
               ),
             ),
           ),
           const SizedBox(height: 16),
           if (downloadUrls.isNotEmpty) ...[
-            const Text(
+            Text(
               '选择下载版本',
               style: TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
+                color: theme.textTheme.titleMedium?.color,
               ),
             ),
             const SizedBox(height: 8),
@@ -159,7 +181,7 @@ class UpdateDialogState extends State<UpdateDialog> {
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(
-                  color: Colors.grey.withAlpha(75),
+                  color: isDark ? Colors.grey[700]! : Colors.grey.withAlpha(75),
                 ),
               ),
               child: DropdownButtonHideUnderline(
@@ -169,11 +191,13 @@ class UpdateDialogState extends State<UpdateDialog> {
                     value: _selectedDownloadUrl,
                     isExpanded: true,
                     borderRadius: BorderRadius.circular(8),
-                    icon: const Icon(Icons.arrow_drop_down),
-                    style: const TextStyle(
-                      color: Colors.black87,
+                    icon: Icon(Icons.arrow_drop_down,
+                        color: theme.iconTheme.color),
+                    style: TextStyle(
+                      color: theme.textTheme.bodyLarge?.color,
                       fontSize: 14,
                     ),
+                    dropdownColor: theme.dialogBackgroundColor,
                     menuMaxHeight: 400,
                     items: downloadUrls.map((item) {
                       String fileName = item['name'] ?? '';
@@ -190,9 +214,7 @@ class UpdateDialogState extends State<UpdateDialog> {
                               Icon(
                                 _getFileIcon(fileName),
                                 size: 20,
-                                color: isCustom
-                                    ? Colors.red
-                                    : Theme.of(context).primaryColor,
+                                color: theme.iconTheme.color,
                               ),
                               const SizedBox(width: 8),
                               Expanded(
@@ -201,8 +223,7 @@ class UpdateDialogState extends State<UpdateDialog> {
                                   style: TextStyle(
                                     fontWeight: FontWeight.w500,
                                     fontSize: 14,
-                                    color:
-                                        isCustom ? Colors.red : Colors.black87,
+                                    color: theme.textTheme.bodyLarge?.color,
                                   ),
                                 ),
                               ),
@@ -221,8 +242,6 @@ class UpdateDialogState extends State<UpdateDialog> {
                             );
                             setState(() {
                               _selectedDownloadUrl = newValue;
-                              _isCustomServer =
-                                  selectedItem['isCustom'] == 'true';
                               _currentDescription = _getArchitectureDescription(
                                   selectedItem['name'] ?? '',
                                   selectedItem['isCustom'] == 'true');
@@ -238,7 +257,7 @@ class UpdateDialogState extends State<UpdateDialog> {
                 _currentDescription,
                 style: TextStyle(
                   fontSize: 12,
-                  color: _isCustomServer ? Colors.red : Colors.grey[600],
+                  color: theme.textTheme.bodySmall?.color,
                 ),
               ),
             ],
@@ -249,10 +268,10 @@ class UpdateDialogState extends State<UpdateDialog> {
               borderRadius: BorderRadius.circular(4),
               child: LinearProgressIndicator(
                 value: _progress,
-                backgroundColor: Colors.grey.withAlpha(26),
-                valueColor: AlwaysStoppedAnimation<Color>(
-                  Theme.of(context).primaryColor,
-                ),
+                backgroundColor:
+                    isDark ? Colors.grey[800] : Colors.grey.withAlpha(26),
+                valueColor:
+                    AlwaysStoppedAnimation<Color>(theme.colorScheme.primary),
               ),
             ),
             const SizedBox(height: 4),
@@ -260,7 +279,7 @@ class UpdateDialogState extends State<UpdateDialog> {
               '下载进度: ${(_progress * 100).toStringAsFixed(1)}%',
               style: TextStyle(
                 fontSize: 12,
-                color: Colors.grey[600],
+                color: theme.textTheme.bodySmall?.color,
               ),
             ),
           ],
@@ -270,7 +289,7 @@ class UpdateDialogState extends State<UpdateDialog> {
         TextButton(
           onPressed: () => Get.back(),
           style: TextButton.styleFrom(
-            foregroundColor: Colors.grey[600],
+            foregroundColor: theme.textTheme.bodyMedium?.color,
           ),
           child: const Text('取消'),
         ),
@@ -279,7 +298,7 @@ class UpdateDialogState extends State<UpdateDialog> {
               ? null
               : _startDownload,
           style: TextButton.styleFrom(
-            foregroundColor: Theme.of(context).primaryColor,
+            foregroundColor: theme.colorScheme.primary,
           ),
           child: const Text('更新'),
         ),

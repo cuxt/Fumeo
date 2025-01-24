@@ -9,6 +9,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up Java
         uses: actions/setup-java@v4
@@ -60,15 +62,21 @@ jobs:
       - name: Generate Changelog
         id: changelog
         run: |
-          changelog=$(git log --pretty=format:"- %s" $(git describe --tags --abbrev=0)..HEAD)
+          # 获取最后一个tag
+          last_tag=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          
+          if [ -z "$last_tag" ]; then
+            # 如果没有之前的tag，获取所有提交
+            changelog=$(git log --pretty=format:"- %s")
+          else
+            # 如果有之前的tag，获取从上个tag到现在的提交
+            changelog=$(git log --pretty=format:"- %s" ${last_tag}..HEAD)
+          fi
+          
+          # 处理多行字符串
           echo "changelog<<EOF" >> $GITHUB_ENV
           echo "$changelog" >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
-
-      - name: Output Changelog
-        run: |
-          echo "The changelog is:"
-          echo "${{ env.changelog }}"
 
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v4
@@ -86,7 +94,8 @@ jobs:
           body: |
             由提交 ${{ github.sha }} 自动触发编译生成的 Release
             
-            更新内容： ${{ env.changelog }}
+            更新内容：
+            ${{ env.changelog }}
           draft: false
           prerelease: false
         env:

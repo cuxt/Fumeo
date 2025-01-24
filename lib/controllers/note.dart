@@ -66,7 +66,7 @@ class NoteController extends GetxController {
     );
     selectedNote.value = note;
     currentView.value = 1;
-    isEditing.value = true; // 创建新笔记时，设置为编辑状态
+    isEditing.value = true;
     jumpToPage(1);
   }
 

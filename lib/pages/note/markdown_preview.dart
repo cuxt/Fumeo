@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:flutter_syntax_view/flutter_syntax_view.dart';
+import 'package:fumeo/core/utils/launch_url.dart';
 import 'package:markdown/markdown.dart' as md;
 import 'package:fumeo/pages/note/models/note.dart';
 
@@ -26,6 +27,11 @@ class MarkdownPreviewPage extends StatelessWidget {
         data: note.content,
         selectable: true,
         padding: const EdgeInsets.all(16),
+        onTapLink: (text, href, title) {
+          if (href != null) {
+            launchURL(href);
+          }
+        },
         builders: {
           'code': CodeElementBuilder(),
         },

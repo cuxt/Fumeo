@@ -25,9 +25,9 @@ class NoteEditPanelState extends State<NoteEditPanel> {
     titleController = TextEditingController(text: widget.note.title);
     contentController = TextEditingController(text: widget.note.content);
 
-    // 如果是新笔记，默认设置为编辑状态
+    // 新笔记初始化时不设置编辑状态
     if (isNewNote) {
-      noteController.isEditing.value = true;
+      noteController.isEditing.value = false;
     }
 
     titleController.addListener(_onTextChanged);
@@ -50,13 +50,6 @@ class NoteEditPanelState extends State<NoteEditPanel> {
       isNewNote = widget.note.title.isEmpty && widget.note.content.isEmpty;
       titleController.text = widget.note.title;
       contentController.text = widget.note.content;
-
-      // 如果是新笔记，设置为编辑状态
-      if (isNewNote) {
-        noteController.isEditing.value = true;
-      } else {
-        noteController.isEditing.value = false;
-      }
     }
   }
 
@@ -66,8 +59,11 @@ class NoteEditPanelState extends State<NoteEditPanel> {
 
     if (isNewNote) {
       // 新笔记：只要有内容就标记为编辑状态
-      noteController.isEditing.value =
-          currentTitle.isNotEmpty || currentContent.isNotEmpty;
+      if (currentTitle.isEmpty && currentContent.isEmpty) {
+        noteController.isEditing.value = false;
+      } else {
+        noteController.isEditing.value = true;
+      }
     } else {
       // 已有笔记：内容发生改变才标记为编辑状态
       bool hasChanged = currentTitle != widget.note.title.trim() ||

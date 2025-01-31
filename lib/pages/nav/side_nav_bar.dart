@@ -129,8 +129,7 @@ class _SideNavBarState extends State<SideNavBar>
                         themeController.isDarkMode.value
                             ? HeroIcons.sun
                             : HeroIcons.moon,
-                        style: HeroIconStyle.outline,
-                        key: ValueKey(themeController.isDarkMode.value),
+                        style: HeroIconStyle.outline
                       ),
                     ),
                   ),

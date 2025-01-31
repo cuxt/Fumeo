@@ -29,12 +29,22 @@ jobs:
         run: flutter pub get
 
       - name: Build APK
-        run: flutter build apk --split-per-abi
         env:
           KEY_STORE_PASSWORD: ${{ secrets.KEY_STORE_PASSWORD }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
           ALIAS: ${{ secrets.ALIAS }}
           KEY_PATH: key.jks
+          TENCENT_SDKAPPID: ${{ secrets.TENCENT_SDKAPPID }}
+          TENCENT_KEY: ${{ secrets.TENCENT_KEY }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: |
+          echo "TENCENT_SDKAPPID=${TENCENT_SDKAPPID}" >> .env
+          echo "TENCENT_KEY=${TENCENT_KEY}" >> .env
+          echo "SUPABASE_URL=${SUPABASE_URL}" >> .env
+          echo "SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY}" >> .env
+          flutter build apk --split-per-abi
+
 
       - name: Build Web
         run: flutter build web
@@ -67,16 +77,19 @@ jobs:
           
           if [ -z "$last_tag" ]; then
             # 如果没有之前的tag，获取所有提交
-            changelog=$(git log --pretty=format:"- %s")
+            changelog=$(git log --format="%B" --no-merges)
           else
             # 如果有之前的tag，获取从上个tag到现在的提交
-            changelog=$(git log --pretty=format:"- %s" ${last_tag}..HEAD)
+            changelog=$(git log --format="%B" --no-merges ${last_tag}..HEAD)
           fi
           
-          # 处理多行字符串
-          echo "changelog<<EOF" >> $GITHUB_ENV
-          echo "$changelog" >> $GITHUB_ENV
-          echo "EOF" >> $GITHUB_ENV
+          # 将changelog保存到文件中
+          echo "$changelog" > CHANGELOG.txt
+          
+          # 设置多行环境变量
+          echo 'changelog<<EOF' >> $GITHUB_ENV
+          cat CHANGELOG.txt >> $GITHUB_ENV
+          echo 'EOF' >> $GITHUB_ENV
 
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v4

@@ -25,6 +25,12 @@ class SideNavController extends GetxController {
       route: '/note',
     ),
     MenuItemModel(
+      icon: HeroIcons.chatBubbleLeftRight,
+      title: '聊天',
+      color: Colors.blue,
+      route: '/im/login',
+    ),
+    MenuItemModel(
       icon: HeroIcons.eye,
       title: '发现',
       color: Colors.red,

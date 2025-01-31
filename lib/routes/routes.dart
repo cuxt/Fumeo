@@ -1,9 +1,11 @@
 import 'package:fumeo/bindings/about.dart';
 import 'package:fumeo/bindings/explore.dart';
+import 'package:fumeo/bindings/im.dart';
 import 'package:fumeo/bindings/note.dart';
 import 'package:fumeo/bindings/todo.dart';
 import 'package:fumeo/pages/about/about.dart';
 import 'package:fumeo/pages/explore/explore.dart';
+import 'package:fumeo/pages/im/login.dart';
 import 'package:fumeo/pages/note/note.dart';
 import 'package:fumeo/pages/settings/settings.dart';
 import 'package:fumeo/pages/todo/todo.dart';
@@ -16,6 +18,10 @@ abstract class Routes {
   static const explore = '/explore';
   static const settings = '/settings';
   static const about = '/about';
+
+  // im.dart
+  static const im = '/im';
+  static const imLogin = '/im/login';
 
   // 路由页面配置
   static final routes = [
@@ -36,5 +42,6 @@ abstract class Routes {
     ),
     GetPage(
         name: about, page: () => const AboutView(), binding: AboutBinding()),
+    GetPage(name: imLogin, page: () => LoginView(), binding: IMBinding()),
   ];
 }

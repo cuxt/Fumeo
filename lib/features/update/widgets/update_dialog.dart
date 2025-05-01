@@ -463,7 +463,7 @@ class UpdateDialogState extends State<UpdateDialog> {
     if (totalSeconds > 60) {
       int minutes = totalSeconds ~/ 60;
       int seconds = totalSeconds % 60;
-      return '$minutes分${seconds}秒';
+      return '$minutes分$seconds秒';
     } else {
       return '${totalSeconds.round()}秒';
     }

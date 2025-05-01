@@ -11,17 +11,10 @@ class FeatureModel {
   /// 功能图标
   final IconData? icon;
 
-  /// 是否在侧边栏显示
-  final bool showInDrawer;
-
-  /// 是否在首页显示
-  final bool showInHome;
 
   FeatureModel({
     required this.text,
     required this.route,
     this.icon,
-    this.showInDrawer = true,
-    this.showInHome = true,
   });
 }

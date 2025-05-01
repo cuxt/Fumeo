@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:fumeo/core/theme/theme_manager.dart';
+import 'package:fumeo/features/note/providers/note_provider.dart';
 
 /// 全局应用状态管理类，用于管理应用级别的状态
 class AppState with ChangeNotifier {
@@ -7,13 +7,16 @@ class AppState with ChangeNotifier {
   Locale _locale = const Locale('zh', 'CN');
   Locale get locale => _locale;
 
-  // 应用主题管理
-  final ThemeManager _themeManager = ThemeManager();
-  ThemeManager get themeManager => _themeManager;
+  // 笔记管理
+  final NoteProvider _noteProvider = NoteProvider();
+  NoteProvider get noteProvider => _noteProvider;
 
   // 导航状态
   int _currentIndex = 0;
   int get currentIndex => _currentIndex;
+
+  // 构造函数
+  AppState();
 
   // 设置当前导航索引
   void setCurrentIndex(int index) {

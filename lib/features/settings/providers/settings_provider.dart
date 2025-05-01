@@ -1,23 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
-import 'package:fumeo/core/theme/theme_manager.dart';
+import 'package:fumeo/core/theme/theme_controller.dart';
 
 class SettingsProvider extends ChangeNotifier {
   String _appVersion = '';
   String _buildNumber = '';
-  late ThemeManager _themeManager;
+  late ThemeController _themeController;
 
   // 亮暗主题相关
-  bool get isDarkMode => _themeManager.themeMode == ThemeMode.dark;
+  bool get isDarkMode => _themeController.themeMode == ThemeMode.dark;
 
   SettingsProvider() {
     _loadAppInfo();
   }
 
-  // 初始化，获取ThemeManager引用
+  // 初始化，获取ThemeController引用
   void initialize(BuildContext context) {
-    _themeManager = Provider.of<ThemeManager>(context, listen: false);
+    _themeController = Provider.of<ThemeController>(context, listen: false);
     notifyListeners();
   }
 
@@ -35,7 +35,7 @@ class SettingsProvider extends ChangeNotifier {
 
   // 切换暗色/亮色模式
   void toggleDarkMode() {
-    _themeManager.toggleThemeMode();
+    _themeController.toggleThemeMode();
     notifyListeners();
   }
 

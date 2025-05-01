@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:fumeo/core/providers/app_state.dart';
-import 'package:fumeo/features/update/providers/update_controller.dart';
 import 'package:fumeo/core/services/feature_service.dart'; // 导入功能服务
+import 'package:go_router/go_router.dart'; // 添加go_router导入
+import 'package:provider/provider.dart';
+import 'package:fumeo/features/note/providers/note_provider.dart'; // 导入笔记提供者
+import 'package:fumeo/features/todo/providers/todo_provider.dart'; // 导入待办提供者
+import 'package:fumeo/features/note/models/note_item.dart'; // 导入笔记模型
+import 'package:fumeo/features/todo/models/todo_item.dart'; // 导入待办模型
+import 'package:fumeo/features/note/screens/note_detail_screen.dart'; // 导入笔记详情页
 import 'widgets/app_drawer.dart';
-import 'widgets/home_content.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -14,8 +17,6 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
-  String searchText = '';
-  final FocusNode _focusNode = FocusNode();
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
   // 动画控制器 - 用于控制边缘手势提示动画
@@ -42,22 +43,10 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       parent: _hintController,
       curve: Curves.easeOutCubic,
     ));
-
-    // 在首页初始化时检查更新
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _checkForUpdates();
-    });
-  }
-
-  void _checkForUpdates() {
-    final updateController =
-        Provider.of<UpdateController>(context, listen: false);
-    updateController.checkForUpdates(context);
   }
 
   @override
   void dispose() {
-    _focusNode.dispose();
     _hintController.dispose();
     super.dispose();
   }
@@ -84,9 +73,13 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
+    // 通过Provider.of获取全局Provider实例
+    Provider.of<NoteProvider>(context, listen: false);
+    Provider.of<TodoProvider>(context, listen: false);
+
     return Scaffold(
       key: _scaffoldKey,
-      // 侧边栏 - 只显示标记为在侧边栏显示的功能
+      // 侧边栏 - 显示所有功能
       drawer: AppDrawer(
         featureMap: _featureService.getDrawerFeatures(),
       ),
@@ -103,26 +96,25 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           },
         ),
         actions: [
-          // 添加检查更新按钮
+          // 添加设置按钮
           IconButton(
-            icon: const Icon(Icons.system_update),
-            onPressed: _checkForUpdates,
-            tooltip: '检查更新',
+            icon: const Icon(Icons.settings_outlined),
+            onPressed: () {
+              context.go('/settings');
+            },
           ),
         ],
       ),
 
       // 主体内容
       body: GestureDetector(
-        // 监听水平拖动手势，从左边缘向右滑动打开侧边栏
+        // 保留水平拖动手势功能
         onHorizontalDragStart: (details) {
-          // 如果是从屏幕左边缘开始拖动
           if (details.localPosition.dx < 20) {
             _showSidebarHint();
           }
         },
         onHorizontalDragUpdate: (details) {
-          // 如果拖动距离超过屏幕宽度的15%，打开侧边栏
           if (details.primaryDelta != null &&
               details.primaryDelta! > 0 &&
               details.localPosition.dx >
@@ -131,24 +123,32 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           }
         },
 
-        // 主内容区
+        // 新的主页内容区
         child: Stack(
           children: [
-            // 主内容 - 只显示标记为在首页显示的功能
+            // 主要内容 - 使用ListView而不是Column以支持滚动
             SafeArea(
-              child: Align(
-                alignment: Alignment.topCenter,
-                child: SingleChildScrollView(
-                  child: HomeContent(
-                    featureMap: _featureService.getHomeFeatures(),
-                    searchText: searchText,
-                    focusNode: _focusNode,
-                  ),
-                ),
+              child: ListView(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+                children: [
+                  // 欢迎信息
+                  _buildWelcomeSection(context),
+
+                  const SizedBox(height: 24),
+
+                  // 主要功能区
+                  _buildMainFeaturesSection(context),
+
+                  const SizedBox(height: 24),
+
+                  // 最近使用的笔记/待办事项区域
+                  _buildRecentItemsSection(context),
+                ],
               ),
             ),
 
-            // 侧边栏提示动画
+            // 侧边栏提示动画(保持原有功能)
             if (_showDrawerHint)
               Positioned(
                 left: 0,
@@ -176,78 +176,487 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   ),
                 ),
               ),
+
+            // 悬浮按钮
+            Positioned(
+              right: 20,
+              bottom: 20,
+              child: _buildQuickActionButton(context),
+            ),
           ],
         ),
-      ),
-
-      // 悬浮按钮 - 主题切换
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          _showThemeSelector(context);
-        },
-        tooltip: '切换主题',
-        backgroundColor: Theme.of(context).colorScheme.primary,
-        foregroundColor: Colors.white,
-        child: const Icon(Icons.color_lens),
       ),
     );
   }
 
-  // 主题选择器弹窗
-  void _showThemeSelector(BuildContext context) {
-    final appState = Provider.of<AppState>(context, listen: false);
-    final themeManager = appState.themeManager;
+  // 欢迎区域
+  Widget _buildWelcomeSection(BuildContext context) {
+    // 获取当前时间，用于显示不同的问候语
+    final hour = DateTime.now().hour;
+    String greeting;
 
+    if (hour < 12) {
+      greeting = '早上好';
+    } else if (hour < 18) {
+      greeting = '下午好';
+    } else {
+      greeting = '晚上好';
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            CircleAvatar(
+              radius: 24,
+              backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+              child: Icon(
+                Icons.person,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+            ),
+            const SizedBox(width: 16),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  greeting,
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                ),
+                Text(
+                  '欢迎使用Fumeo应用',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey[600],
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  // 主要功能区
+  Widget _buildMainFeaturesSection(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(left: 8.0, bottom: 16.0),
+          child: Text(
+            '主要功能',
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Theme.of(context).colorScheme.onBackground,
+            ),
+          ),
+        ),
+
+        // 功能卡片网格
+        GridView.count(
+          crossAxisCount: 2,
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          childAspectRatio: 1.5,
+          mainAxisSpacing: 16,
+          crossAxisSpacing: 16,
+          children: [
+            _buildFeatureCard(
+              context,
+              '笔记',
+              Icons.note_alt_outlined,
+              Theme.of(context).colorScheme.primary,
+              () => context.go('/note'),
+            ),
+            _buildFeatureCard(
+              context,
+              '待办事项',
+              Icons.check_circle_outline,
+              Colors.green,
+              () => context.go('/todo'),
+            ),
+            _buildFeatureCard(
+              context,
+              '探索',
+              Icons.explore_outlined,
+              Colors.orange,
+              () => context.go('/explore'),
+            ),
+            _buildFeatureCard(
+              context,
+              '主题设置',
+              Icons.color_lens_outlined,
+              Colors.purple,
+              () => context.go('/settings/theme'),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  // 单个功能卡片
+  Widget _buildFeatureCard(
+    BuildContext context,
+    String title,
+    IconData icon,
+    Color color,
+    VoidCallback onTap,
+  ) {
+    return Card(
+      elevation: 2,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                icon,
+                size: 36,
+                color: color,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                title,
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // 最近项目区域
+  Widget _buildRecentItemsSection(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(left: 8.0, bottom: 16.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                '最近项目',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Theme.of(context).colorScheme.onBackground,
+                ),
+              ),
+              TextButton(
+                onPressed: () {
+                  // 查看全部逻辑
+                },
+                child: const Text('查看全部'),
+              ),
+            ],
+          ),
+        ),
+
+        // 使用Consumer获取笔记和待办数据
+        Consumer2<NoteProvider, TodoProvider>(
+          builder: (context, noteProvider, todoProvider, child) {
+            // 合并笔记和待办事项到一个列表，并按更新/创建时间排序
+            final recentItems = _getRecentItems(noteProvider, todoProvider);
+
+            if (recentItems.isEmpty) {
+              return Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(20.0),
+                  child: Column(
+                    children: [
+                      Icon(
+                        Icons.inbox_outlined,
+                        size: 48,
+                        color: Colors.grey[400],
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        '暂无最近项目',
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: Colors.grey[600],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }
+
+            return Column(
+              children: recentItems.take(5).map((item) {
+                if (item is NoteItem) {
+                  // 构建笔记卡片
+                  return _buildNoteCard(context, item, () {
+                    // 点击笔记时导航到笔记详情页
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => ChangeNotifierProvider.value(
+                          value: noteProvider,
+                          child: NoteDetailScreen(noteId: item.id),
+                        ),
+                      ),
+                    );
+                  });
+                } else if (item is TodoItem) {
+                  // 构建待办事项卡片
+                  return _buildTodoCard(context, item, () {
+                    // 点击待办时导航到待办列表页
+                    context.go('/todo');
+                  });
+                }
+                return const SizedBox.shrink();
+              }).toList(),
+            );
+          },
+        ),
+      ],
+    );
+  }
+
+  // 从笔记和待办事项中获取最近项目
+  List<dynamic> _getRecentItems(
+      NoteProvider noteProvider, TodoProvider todoProvider) {
+    final notes = noteProvider.notes;
+    final todos = todoProvider.items;
+
+    // 合并两个列表
+    final allItems = <dynamic>[];
+    allItems.addAll(notes);
+    allItems.addAll(todos);
+
+    // 根据更新时间排序（笔记用updatedAt，待办用createdAt）
+    allItems.sort((a, b) {
+      final DateTime timeA = a is NoteItem ? a.updatedAt : a.createdAt;
+      final DateTime timeB = b is NoteItem ? b.updatedAt : b.createdAt;
+      return timeB.compareTo(timeA); // 降序排序，最新的排在前面
+    });
+
+    return allItems;
+  }
+
+  // 构建笔记卡片
+  Widget _buildNoteCard(
+      BuildContext context, NoteItem note, VoidCallback onTap) {
+    // 从笔记内容中提取摘要（去掉Markdown标记）
+    final summary = _extractNoteSummary(note.content);
+
+    return _buildRecentItemCard(
+      context,
+      note.title,
+      summary,
+      Icons.note_alt_outlined,
+      note.updatedAt,
+      onTap,
+    );
+  }
+
+  // 构建待办事项卡片
+  Widget _buildTodoCard(
+      BuildContext context, TodoItem todo, VoidCallback onTap) {
+    final statusText = todo.completed ? '（已完成）' : '（待完成）';
+
+    return _buildRecentItemCard(
+      context,
+      todo.title,
+      '待办事项 $statusText',
+      Icons.check_circle_outline,
+      todo.createdAt,
+      onTap,
+      backgroundColor: todo.completed ? Colors.green.withOpacity(0.1) : null,
+      iconColor:
+          todo.completed ? Colors.green : Theme.of(context).colorScheme.primary,
+    );
+  }
+
+  // 从笔记内容中提取摘要（简化版本的Markdown解析）
+  String _extractNoteSummary(String content) {
+    if (content.isEmpty) {
+      return '空笔记';
+    }
+
+    // 简单移除一些常见的Markdown标记
+    final plainText = content
+        .replaceAll(RegExp(r'#{1,6}\s'), '') // 标题
+        .replaceAll(RegExp(r'\*\*(.*?)\*\*'), r'$1') // 粗体
+        .replaceAll(RegExp(r'\*(.*?)\*'), r'$1') // 斜体
+        .replaceAll(RegExp(r'```.*?```', dotAll: true), '') // 代码块
+        .replaceAll(RegExp(r'`(.*?)`'), r'$1') // 行内代码
+        .replaceAll(RegExp(r'\[(.*?)\]\(.*?\)'), r'$1') // 链接
+        .replaceAll(RegExp(r'!\[(.*?)\]\(.*?\)'), '[图片]') // 图片
+        .replaceAll(RegExp(r'^\s*[-+*]\s', multiLine: true), '') // 列表
+        .replaceAll(RegExp(r'^\s*\d+\.\s', multiLine: true), ''); // 有序列表
+
+    return plainText.trim();
+  }
+
+  // 单个最近项目卡片
+  Widget _buildRecentItemCard(
+    BuildContext context,
+    String title,
+    String description,
+    IconData icon,
+    DateTime time,
+    VoidCallback onTap, {
+    Color? backgroundColor,
+    Color? iconColor,
+  }) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      color: backgroundColor,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.primaryContainer,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(
+                  icon,
+                  color: iconColor ?? Theme.of(context).colorScheme.primary,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      description,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey[600],
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      _formatTime(time),
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey[500],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // 格式化时间
+  String _formatTime(DateTime time) {
+    final now = DateTime.now();
+    final difference = now.difference(time);
+
+    if (difference.inDays > 0) {
+      return '${difference.inDays}天前';
+    } else if (difference.inHours > 0) {
+      return '${difference.inHours}小时前';
+    } else if (difference.inMinutes > 0) {
+      return '${difference.inMinutes}分钟前';
+    } else {
+      return '刚刚';
+    }
+  }
+
+  // 悬浮操作按钮
+  Widget _buildQuickActionButton(BuildContext context) {
+    return FloatingActionButton(
+      onPressed: () {
+        _showQuickActionMenu(context);
+      },
+      backgroundColor: Theme.of(context).colorScheme.primary,
+      child: const Icon(Icons.add),
+    );
+  }
+
+  // 快速操作菜单
+  void _showQuickActionMenu(BuildContext context) {
     showModalBottomSheet(
       context: context,
-      builder: (BuildContext context) {
-        return SafeArea(
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return Padding(
+          padding: const EdgeInsets.symmetric(vertical: 20),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Container(
-                width: double.infinity,
-                color: Theme.of(context).colorScheme.primary,
-                padding: const EdgeInsets.all(16),
-                child: const Text(
-                  '选择主题颜色',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
+              const Text(
+                '创建新内容',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
+              const SizedBox(height: 20),
               ListTile(
-                leading: const Icon(Icons.circle, color: Colors.blue),
-                title: const Text('蓝色主题'),
+                leading: Icon(
+                  Icons.note_add,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+                title: const Text('新建笔记'),
                 onTap: () {
-                  themeManager.setPrimaryColor(Colors.blue);
                   Navigator.pop(context);
+                  // 导航到新建笔记页面
+                  context.go('/note');
                 },
               ),
               ListTile(
-                leading: const Icon(Icons.circle, color: Colors.green),
-                title: const Text('绿色主题'),
+                leading: Icon(
+                  Icons.add_task,
+                  color: Colors.green,
+                ),
+                title: const Text('新建待办'),
                 onTap: () {
-                  themeManager.setPrimaryColor(Colors.green);
                   Navigator.pop(context);
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.circle, color: Colors.red),
-                title: const Text('红色主题'),
-                onTap: () {
-                  themeManager.setPrimaryColor(Colors.red);
-                  Navigator.pop(context);
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.circle, color: Colors.purple),
-                title: const Text('紫色主题'),
-                onTap: () {
-                  themeManager.setPrimaryColor(Colors.purple);
-                  Navigator.pop(context);
+                  // 导航到新建待办页面
+                  context.go('/todo');
                 },
               ),
             ],

@@ -13,11 +13,6 @@ class FeatureService {
           route: '/notes',
         ),
         FeatureModel(
-          text: '创建笔记',
-          icon: Icons.add_box_outlined,
-          route: '/notes/create',
-        ),
-        FeatureModel(
           text: '笔记分类',
           icon: Icons.category_outlined,
           route: '/notes/categories',

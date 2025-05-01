@@ -2,8 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'providers/note_provider.dart';
 import 'widgets/note_list_item.dart';
-import 'widgets/markdown_editor.dart';
-import 'widgets/markdown_preview.dart';
+import 'screens/note_detail_screen.dart';
 
 class NoteScreen extends StatefulWidget {
   const NoteScreen({super.key});
@@ -13,81 +12,108 @@ class NoteScreen extends StatefulWidget {
 }
 
 class _NoteScreenState extends State<NoteScreen> {
-  bool _isPreviewMode = false;
+  final NoteProvider _noteProvider = NoteProvider();
+  bool _isLoading = false;
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (_) => NoteProvider(),
-      child: Consumer<NoteProvider>(
-        builder: (context, noteProvider, _) {
-          return Scaffold(
-            appBar: AppBar(
-              title: const Text('笔记'),
-              backgroundColor: Theme.of(context).colorScheme.primary,
-              foregroundColor: Colors.white,
-              actions: [
-                // 添加新笔记按钮
-                IconButton(
-                  icon: const Icon(Icons.add),
-                  onPressed: () => noteProvider.addNote(),
-                ),
-                // 预览/编辑模式切换按钮
-                if (noteProvider.selectedNote != null)
-                  IconButton(
-                    icon: Icon(_isPreviewMode ? Icons.edit : Icons.visibility),
-                    onPressed: () {
-                      setState(() {
-                        _isPreviewMode = !_isPreviewMode;
-                      });
-                    },
-                  ),
-              ],
+    return ChangeNotifierProvider.value(
+      value: _noteProvider,
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('笔记'),
+          backgroundColor: Theme.of(context).colorScheme.primary,
+          foregroundColor: Colors.white,
+          actions: [
+            // 添加新笔记按钮
+            IconButton(
+              icon: const Icon(Icons.add),
+              tooltip: '新建笔记',
+              onPressed: _createNewNote,
             ),
-            body: _buildBody(context, noteProvider),
-          );
-        },
+            // 刷新按钮
+            IconButton(
+              icon: const Icon(Icons.refresh),
+              tooltip: '刷新',
+              onPressed: _refreshNotes,
+            ),
+          ],
+        ),
+        body: _buildBody(context),
       ),
     );
   }
 
-  Widget _buildBody(BuildContext context, NoteProvider noteProvider) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final isWideScreen = screenWidth > 800;
+  void _createNewNote() async {
+    setState(() {
+      _isLoading = true;
+    });
 
-    // 宽屏时分为两列，窄屏时用底部导航栏切换
-    if (isWideScreen) {
-      return Row(
-        children: [
-          // 左侧笔记列表
-          SizedBox(
-            width: 280,
-            child: _buildNotesList(noteProvider),
-          ),
+    try {
+      final newNote = await _noteProvider.addNote();
 
-          // 分隔线
-          const VerticalDivider(width: 1),
-
-          // 右侧编辑/预览区
-          Expanded(
-            child: _buildEditArea(noteProvider),
-          ),
-        ],
-      );
-    } else {
-      return noteProvider.notes.isEmpty
-          ? _buildEmptyState()
-          : _buildEditArea(noteProvider);
+      if (mounted) {
+        // 导航到笔记详情页
+        _navigateToNoteDetail(newNote.id);
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
+  }
+
+  void _refreshNotes() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      await _noteProvider.refreshNotes();
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  void _navigateToNoteDetail(String noteId) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ChangeNotifierProvider.value(
+          value: _noteProvider,
+          child: NoteDetailScreen(noteId: noteId),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBody(BuildContext context) {
+    return Consumer<NoteProvider>(
+      builder: (context, noteProvider, child) {
+        if (noteProvider.isLoading || _isLoading) {
+          return const Center(
+            child: CircularProgressIndicator(),
+          );
+        }
+
+        final notes = noteProvider.notes;
+        if (notes.isEmpty) {
+          return _buildEmptyState();
+        }
+
+        return _buildNotesList(noteProvider);
+      },
+    );
   }
 
   Widget _buildNotesList(NoteProvider noteProvider) {
     final notes = noteProvider.notes;
-    final selectedNote = noteProvider.selectedNote;
-
-    if (notes.isEmpty) {
-      return _buildEmptyState();
-    }
 
     return Column(
       children: [
@@ -114,39 +140,17 @@ class _NoteScreenState extends State<NoteScreen> {
               final note = notes[index];
               return NoteListItem(
                 note: note,
-                isSelected: selectedNote?.id == note.id,
-                onTap: () => noteProvider.selectNote(note.id),
-                onDelete: () => noteProvider.deleteNote(note.id),
+                isSelected: false, // 在主列表页不显示选中状态
+                onTap: () => _navigateToNoteDetail(note.id),
+                onDelete: () async {
+                  await noteProvider.deleteNote(note.id);
+                },
               );
             },
           ),
         ),
       ],
     );
-  }
-
-  Widget _buildEditArea(NoteProvider noteProvider) {
-    final selectedNote = noteProvider.selectedNote;
-
-    if (selectedNote == null) {
-      return const Center(
-        child: Text('选择或创建一个笔记开始编辑'),
-      );
-    }
-
-    return _isPreviewMode
-        ? MarkdownPreview(markdownData: selectedNote.content)
-        : MarkdownEditor(
-            note: selectedNote,
-            onTitleChanged: (title) => noteProvider.updateNote(
-              id: selectedNote.id,
-              title: title,
-            ),
-            onContentChanged: (content) => noteProvider.updateNote(
-              id: selectedNote.id,
-              content: content,
-            ),
-          );
   }
 
   Widget _buildEmptyState() {
@@ -173,6 +177,16 @@ class _NoteScreenState extends State<NoteScreen> {
             style: TextStyle(
               fontSize: 14,
               color: Colors.grey[500],
+            ),
+          ),
+          const SizedBox(height: 24),
+          ElevatedButton.icon(
+            onPressed: _createNewNote,
+            icon: const Icon(Icons.add),
+            label: const Text('创建新笔记'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Theme.of(context).colorScheme.primary,
+              foregroundColor: Colors.white,
             ),
           ),
         ],

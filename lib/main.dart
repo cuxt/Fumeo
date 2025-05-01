@@ -5,7 +5,10 @@ import 'package:hive_ce_flutter/adapters.dart';
 import 'package:provider/provider.dart';
 import 'package:fumeo/core/providers/app_state.dart';
 import 'package:fumeo/core/router/app_router.dart';
+import 'package:fumeo/core/theme/theme_controller.dart';
 import 'package:fumeo/features/update/providers/update_controller.dart';
+import 'package:fumeo/features/todo/providers/todo_provider.dart';
+import 'package:fumeo/features/note/providers/note_provider.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -28,10 +31,14 @@ class FumeoApp extends StatelessWidget {
     // 使用MultiProvider提供全局状态
     return MultiProvider(
       providers: [
+        // 直接提供主题控制器
+        ChangeNotifierProvider(create: (_) => ThemeController()),
+        // 应用状态
         ChangeNotifierProvider(create: (_) => AppState()),
-        // 添加 ThemeManager Provider
-        ChangeNotifierProvider(
-            create: (context) => context.read<AppState>().themeManager),
+        // 添加独立的 NoteProvider
+        ChangeNotifierProvider(create: (_) => NoteProvider()),
+        // 添加独立的 TodoProvider
+        ChangeNotifierProvider(create: (_) => TodoProvider()),
         // 添加更新控制器
         ChangeNotifierProvider(create: (_) {
           final controller = UpdateController();
@@ -40,13 +47,13 @@ class FumeoApp extends StatelessWidget {
           return controller;
         }),
       ],
-      child: Consumer<AppState>(
-        builder: (context, appState, _) {
+      child: Consumer2<ThemeController, AppState>(
+        builder: (context, themeController, appState, _) {
           return MaterialApp.router(
             title: 'Fumeo',
-            theme: appState.themeManager.themeData,
-            darkTheme: appState.themeManager.darkThemeData,
-            themeMode: appState.themeManager.themeMode,
+            theme: themeController.lightTheme,
+            darkTheme: themeController.darkTheme,
+            themeMode: themeController.themeMode,
             locale: appState.locale,
             supportedLocales: const [
               Locale('zh', 'CN'),

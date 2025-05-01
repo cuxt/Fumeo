@@ -14,68 +14,21 @@ class FeatureService {
   // 所有功能模块列表
   final Map<String, List<FeatureModel>> featureMap = {
     '笔记': [
-      FeatureModel(
-        text: '笔记列表',
-        route: '/note',
-        icon: Icons.note,
-        showInDrawer: true,
-        showInHome: true,
-      ),
-      FeatureModel(
-        text: '创建笔记',
-        route: '/note/create',
-        icon: Icons.add_circle_outline,
-        showInDrawer: false, // 只在首页显示
-        showInHome: true,
-      ),
+      FeatureModel(text: '笔记列表', route: '/note', icon: Icons.note),
     ],
     '待办': [
       FeatureModel(
-        text: '待办列表',
-        route: '/todo',
-        icon: Icons.check_circle_outline,
-        showInDrawer: true,
-        showInHome: true,
-      ),
-      FeatureModel(
-        text: '创建待办',
-        route: '/todo/create',
-        icon: Icons.add_task,
-        showInDrawer: false, // 只在首页显示
-        showInHome: true,
-      ),
+          text: '待办列表', route: '/todo', icon: Icons.check_circle_outline),
     ],
     '探索': [
-      FeatureModel(
-        text: '探索',
-        route: '/explore',
-        icon: Icons.explore,
-        showInDrawer: true,
-        showInHome: true,
-      ),
+      FeatureModel(text: '探索', route: '/explore', icon: Icons.explore),
     ],
     '设置': [
+      FeatureModel(text: '设置', route: '/settings', icon: Icons.settings),
       FeatureModel(
-        text: '设置',
-        route: '/settings',
-        icon: Icons.settings,
-        showInDrawer: true,
-        showInHome: true,
-      ),
+          text: '关于', route: '/settings/about', icon: Icons.info_outline),
       FeatureModel(
-        text: '关于',
-        route: '/settings/about',
-        icon: Icons.info_outline,
-        showInDrawer: true,
-        showInHome: false, // 只在侧边栏显示
-      ),
-      FeatureModel(
-        text: '主题设置',
-        route: '/settings/theme',
-        icon: Icons.color_lens,
-        showInDrawer: true,
-        showInHome: false, // 只在侧边栏显示
-      ),
+          text: '主题设置', route: '/settings/theme', icon: Icons.color_lens),
     ],
   };
 
@@ -89,25 +42,9 @@ class FeatureService {
     final result = <String, List<FeatureModel>>{};
 
     featureMap.forEach((category, features) {
-      final drawerFeatures =
-          features.where((feature) => feature.showInDrawer).toList();
+      final drawerFeatures = features.toList();
       if (drawerFeatures.isNotEmpty) {
         result[category] = drawerFeatures;
-      }
-    });
-
-    return result;
-  }
-
-  // 获取首页显示的功能列表
-  Map<String, List<FeatureModel>> getHomeFeatures() {
-    final result = <String, List<FeatureModel>>{};
-
-    featureMap.forEach((category, features) {
-      final homeFeatures =
-          features.where((feature) => feature.showInHome).toList();
-      if (homeFeatures.isNotEmpty) {
-        result[category] = homeFeatures;
       }
     });
 
@@ -130,29 +67,6 @@ class FeatureService {
     featureMap.forEach((category, features) {
       final matchedFeatures = features
           .where((feature) =>
-              feature.text.toLowerCase().contains(query.toLowerCase()))
-          .toList();
-
-      if (matchedFeatures.isNotEmpty) {
-        result[category] = matchedFeatures;
-      }
-    });
-
-    return result;
-  }
-
-  // 搜索首页显示的功能
-  Map<String, List<FeatureModel>> searchHomeFeatures(String query) {
-    if (query.isEmpty) {
-      return getHomeFeatures();
-    }
-
-    final result = <String, List<FeatureModel>>{};
-
-    featureMap.forEach((category, features) {
-      final matchedFeatures = features
-          .where((feature) =>
-              feature.showInHome &&
               feature.text.toLowerCase().contains(query.toLowerCase()))
           .toList();
 

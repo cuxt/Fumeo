@@ -61,7 +61,7 @@ class TodoFilterBar extends StatelessWidget {
           style: ElevatedButton.styleFrom(
             backgroundColor: isSelected
                 ? theme.colorScheme.primary
-                : theme.colorScheme.surfaceVariant,
+                : theme.colorScheme.surfaceContainerHighest,
             foregroundColor: isSelected
                 ? theme.colorScheme.onPrimary
                 : theme.colorScheme.onSurfaceVariant,

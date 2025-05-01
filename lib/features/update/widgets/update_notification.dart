@@ -97,7 +97,7 @@ class UpdateNotification {
               borderRadius: BorderRadius.circular(8),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
+                  color: Colors.black.withAlpha(26),
                   blurRadius: 8,
                   offset: const Offset(0, 2),
                 ),
@@ -123,7 +123,7 @@ class UpdateNotification {
                     color: Theme.of(context)
                         .colorScheme
                         .onPrimaryContainer
-                        .withOpacity(0.8),
+                        .withAlpha(179), // 0.7 * 255 = 178.5 ≈ 179
                   ),
                 ),
                 const SizedBox(height: 8),

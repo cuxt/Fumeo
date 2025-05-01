@@ -9,10 +9,10 @@ typedef ProgressCallback = void Function(double progress);
 
 class GithubService {
   static const String apiUrl = 'https://api.github.com/repos';
-  static const String repoOwner = 'yourusername'; // 请替换为您的实际GitHub用户名
+  static const String repoOwner = 'cuxt';
   static const String repoName = 'fumeo';
 
-  /// 获取当前更新源配置
+  // 获取当前更新源配置
   static Future<Map<String, String>> getUpdateSource() async {
     final prefs = await SharedPreferences.getInstance();
     final useGitHub = prefs.getBool('update_use_github') ?? true;

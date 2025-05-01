@@ -120,11 +120,15 @@ class _NoteDetailScreenState extends State<NoteDetailScreen> {
     });
 
     try {
+      // 在异步操作前获取ScaffoldMessengerState，避免在异步操作后使用BuildContext
+      final scaffoldMessenger = ScaffoldMessenger.of(context);
+
       // 这里已经通过onChange事件保存了内容，此处仅显示保存成功提示
       await Future.delayed(const Duration(milliseconds: 500)); // 模拟保存操作
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
+        // 使用之前获取的scaffoldMessenger，而不是重新使用context
+        scaffoldMessenger.showSnackBar(
           const SnackBar(
             content: Text('笔记已保存'),
             duration: Duration(seconds: 2),

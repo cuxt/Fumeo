@@ -38,7 +38,6 @@ class _ThemeSettingsPageState extends State<ThemeSettingsPage> {
     Colors.deepOrange,
     Colors.brown,
     Colors.blueGrey,
-    Colors.grey,
   ];
 
   @override
@@ -197,69 +196,78 @@ class _ThemeSettingsPageState extends State<ThemeSettingsPage> {
                           const SizedBox(height: 16),
 
                           // 预设颜色选择器
-                          Wrap(
-                            spacing: 12,
-                            runSpacing: 12,
-                            children: [
-                              for (final color in _presetColors)
+                          LayoutBuilder(builder: (context, constraints) {
+                            final double availableWidth = constraints.maxWidth;
+                            final int itemsPerRow =
+                                (availableWidth / 60).floor(); // 每行显示的项目数
+                            final double itemWidth =
+                                (availableWidth - (itemsPerRow - 1) * 12) /
+                                    itemsPerRow;
+
+                            return Wrap(
+                              spacing: 12,
+                              runSpacing: 12,
+                              children: [
+                                for (final color in _presetColors)
+                                  GestureDetector(
+                                    onTap: () => _updatePreviewColor(color),
+                                    child: Container(
+                                      width: itemWidth,
+                                      height: itemWidth,
+                                      decoration: BoxDecoration(
+                                        color: color,
+                                        shape: BoxShape.circle,
+                                        border: Border.all(
+                                          color: _selectedColor == color
+                                              ? (currentThemeBrightness ==
+                                                      Brightness.dark
+                                                  ? Colors.white
+                                                  : Colors.black87)
+                                              : Colors.transparent,
+                                          width: 2,
+                                        ),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: Colors.black.withAlpha(26),
+                                            blurRadius: 4,
+                                            offset: const Offset(0, 2),
+                                          ),
+                                        ],
+                                      ),
+                                      child: _selectedColor == color
+                                          ? Icon(
+                                              Icons.check,
+                                              color: ThemeData
+                                                          .estimateBrightnessForColor(
+                                                              color) ==
+                                                      Brightness.dark
+                                                  ? Colors.white
+                                                  : Colors.black87,
+                                              size: 24,
+                                            )
+                                          : null,
+                                    ),
+                                  ),
+
+                                // 自定义颜色选择器按钮
                                 GestureDetector(
-                                  onTap: () => _updatePreviewColor(color),
+                                  onTap: () => _showColorPickerDialog(),
                                   child: Container(
-                                    width: 48,
-                                    height: 48,
+                                    width: itemWidth,
+                                    height: itemWidth,
                                     decoration: BoxDecoration(
-                                      color: color,
+                                      color: Theme.of(context).cardColor,
                                       shape: BoxShape.circle,
                                       border: Border.all(
-                                        color: _selectedColor == color
-                                            ? (currentThemeBrightness ==
-                                                    Brightness.dark
-                                                ? Colors.white
-                                                : Colors.black87)
-                                            : Colors.transparent,
-                                        width: 2,
+                                        color: Theme.of(context).dividerColor,
                                       ),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: Colors.black.withOpacity(0.1),
-                                          blurRadius: 4,
-                                          offset: const Offset(0, 2),
-                                        ),
-                                      ],
                                     ),
-                                    child: _selectedColor == color
-                                        ? Icon(
-                                            Icons.check,
-                                            color: ThemeData
-                                                        .estimateBrightnessForColor(
-                                                            color) ==
-                                                    Brightness.dark
-                                                ? Colors.white
-                                                : Colors.black87,
-                                            size: 24,
-                                          )
-                                        : null,
+                                    child: const Icon(Icons.add),
                                   ),
                                 ),
-
-                              // 自定义颜色选择器按钮
-                              GestureDetector(
-                                onTap: () => _showColorPickerDialog(),
-                                child: Container(
-                                  width: 48,
-                                  height: 48,
-                                  decoration: BoxDecoration(
-                                    color: Theme.of(context).cardColor,
-                                    shape: BoxShape.circle,
-                                    border: Border.all(
-                                      color: Theme.of(context).dividerColor,
-                                    ),
-                                  ),
-                                  child: const Icon(Icons.add),
-                                ),
-                              ),
-                            ],
-                          ),
+                              ],
+                            );
+                          }),
                         ],
                       ),
                     ),
@@ -355,37 +363,52 @@ class _ThemeSettingsPageState extends State<ThemeSettingsPage> {
 
   // 显示颜色选择器对话框
   void _showColorPickerDialog() {
+    // 创建一个状态变量来存储当前选择的颜色
+    Color pickerColor = _selectedColor;
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('选择自定义颜色'),
-          content: SingleChildScrollView(
-            child: ColorPicker(
-              pickerColor: _selectedColor,
-              onColorChanged: _updatePreviewColor,
-              pickerAreaHeightPercent: 0.8,
-              enableAlpha: false,
-              displayThumbColor: true,
-              showLabel: true,
-              paletteType: PaletteType.hsv,
-              pickerAreaBorderRadius:
-                  const BorderRadius.all(Radius.circular(10)),
+        return StatefulBuilder(builder: (context, setState) {
+          return AlertDialog(
+            title: const Text('选择自定义颜色'),
+            content: SingleChildScrollView(
+              child: ColorPicker(
+                pickerColor: pickerColor,
+                onColorChanged: (color) {
+                  // 在对话框内更新颜色
+                  setState(() {
+                    pickerColor = color;
+                  });
+                },
+                pickerAreaHeightPercent: 0.8,
+                enableAlpha: false,
+                displayThumbColor: true,
+                labelTypes: const [
+                  ColorLabelType.hex,
+                  ColorLabelType.rgb
+                ], // 显示颜色代码和RGB值
+                paletteType: PaletteType.hsv,
+                pickerAreaBorderRadius:
+                    const BorderRadius.all(Radius.circular(10)),
+              ),
             ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('取消'),
-            ),
-            FilledButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: const Text('确定'),
-            ),
-          ],
-        );
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('取消'),
+              ),
+              FilledButton(
+                onPressed: () {
+                  // 确认后，将选择的颜色应用到主题
+                  _updatePreviewColor(pickerColor);
+                  Navigator.of(context).pop();
+                },
+                child: const Text('确定'),
+              ),
+            ],
+          );
+        });
       },
     );
   }
@@ -408,7 +431,6 @@ class _ThemeSettingsPageState extends State<ThemeSettingsPage> {
       previewTheme = ThemeData.light().copyWith(
         colorScheme: previewColorScheme,
         primaryColor: _selectedColor,
-        useMaterial3: true,
         // 确保预览区域背景色正确显示
         scaffoldBackgroundColor: previewColorScheme.surface,
         cardColor: Colors.white,
@@ -417,7 +439,6 @@ class _ThemeSettingsPageState extends State<ThemeSettingsPage> {
       previewTheme = ThemeData.dark().copyWith(
         colorScheme: previewColorScheme,
         primaryColor: _selectedColor,
-        useMaterial3: true,
         // 确保预览区域背景色正确显示
         scaffoldBackgroundColor: previewColorScheme.surface,
         cardColor: previewColorScheme.surfaceContainerHigh,

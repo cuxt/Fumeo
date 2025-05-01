@@ -76,7 +76,7 @@ class ThemeController with ChangeNotifier {
       await prefs.setString(_themeModeKey, themeModeString);
 
       // 保存主题颜色
-      await prefs.setInt(_primaryColorKey, _primaryColor.value);
+      await prefs.setInt(_primaryColorKey, _primaryColor.toARGB32());
     } catch (e) {
       debugPrint('保存主题设置失败: $e');
     }
@@ -141,15 +141,17 @@ class ThemeController with ChangeNotifier {
         backgroundColor:
             isDark ? colorScheme.surfaceContainerHigh : colorScheme.surface,
         selectedItemColor: colorScheme.primary,
-        unselectedItemColor: colorScheme.onSurfaceVariant.withOpacity(0.6),
+        unselectedItemColor: colorScheme.onSurfaceVariant
+            .withValues(alpha: 153), // 0.6 * 255 = 153
       ),
 
       // 输入框主题
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: isDark
-            ? colorScheme.surfaceContainerHighest.withOpacity(0.3)
-            : colorScheme.surfaceContainerLowest.withOpacity(0.3),
+            ? colorScheme.surfaceContainerHighest
+                .withValues(alpha: 77) // 0.3 * 255 = 76.5 ≈ 77
+            : colorScheme.surfaceContainerLowest.withValues(alpha: 77),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
         ),
@@ -164,15 +166,16 @@ class ThemeController with ChangeNotifier {
 
       // 开关主题
       switchTheme: SwitchThemeData(
-        thumbColor: MaterialStateProperty.resolveWith((states) {
-          if (states.contains(MaterialState.selected)) {
+        thumbColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
             return colorScheme.primary;
           }
           return isDark ? Colors.grey.shade600 : Colors.grey.shade400;
         }),
-        trackColor: MaterialStateProperty.resolveWith((states) {
-          if (states.contains(MaterialState.selected)) {
-            return colorScheme.primary.withOpacity(0.5);
+        trackColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
+            return colorScheme.primary
+                .withValues(alpha: 128); // 0.5 * 255 = 127.5 ≈ 128
           }
           return isDark ? Colors.grey.shade700 : Colors.grey.shade300;
         }),

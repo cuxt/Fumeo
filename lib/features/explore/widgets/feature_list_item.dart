@@ -36,7 +36,7 @@ class FeatureListItem extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.2),
+                  color: color.withValues(alpha: 51), // 0.2 * 255 = 51
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(

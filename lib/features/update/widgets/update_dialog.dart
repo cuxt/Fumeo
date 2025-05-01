@@ -175,7 +175,7 @@ class UpdateDialogState extends State<UpdateDialog> {
     ];
 
     return AlertDialog(
-      backgroundColor: theme.dialogBackgroundColor,
+      backgroundColor: theme.dialogTheme.backgroundColor,
       title: Row(
         children: [
           Icon(
@@ -201,7 +201,8 @@ class UpdateDialogState extends State<UpdateDialog> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
-              color: theme.colorScheme.primaryContainer.withOpacity(0.5),
+              color: theme.colorScheme.primaryContainer
+                  .withValues(alpha: 128), // 0.5 * 255 = 127.5 ≈ 128
               borderRadius: BorderRadius.circular(16),
             ),
             child: Text(
@@ -301,7 +302,7 @@ class UpdateDialogState extends State<UpdateDialog> {
                       color: theme.textTheme.bodyLarge?.color,
                       fontSize: 14,
                     ),
-                    dropdownColor: theme.dialogBackgroundColor,
+                    dropdownColor: theme.dialogTheme.backgroundColor,
                     menuMaxHeight: 400,
                     items: downloadUrls.map((item) {
                       String fileName = item['name'] ?? '';
@@ -457,15 +458,14 @@ class UpdateDialogState extends State<UpdateDialog> {
   String _estimateRemainingTime() {
     if (_progress <= 0) return '计算中...';
 
-    // 假设下载大小约为30MB，这里做一个简单的估算
-    int totalSeconds = ((1.0 - _progress) / (_progress * 0.05) * 10) as int;
+    int totalSeconds = ((1.0 - _progress) / (_progress * 0.05) * 10).round();
 
     if (totalSeconds > 60) {
       int minutes = totalSeconds ~/ 60;
       int seconds = totalSeconds % 60;
       return '$minutes分$seconds秒';
     } else {
-      return '${totalSeconds.round()}秒';
+      return '$totalSeconds秒';
     }
   }
 

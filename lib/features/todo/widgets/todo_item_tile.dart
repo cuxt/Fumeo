@@ -123,7 +123,10 @@ class TodoItemTile extends StatelessWidget {
             width: 2,
           ),
           color: item.completed
-              ? Theme.of(context).colorScheme.primary.withOpacity(0.1)
+              ? Theme.of(context)
+                  .colorScheme
+                  .primary
+                  .withValues(alpha: 26) // 0.1 * 255 = 25.5 ≈ 26
               : Colors.transparent,
         ),
         child: Icon(

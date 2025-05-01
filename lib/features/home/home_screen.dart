@@ -162,7 +162,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                       color: Theme.of(context)
                           .colorScheme
                           .primary
-                          .withOpacity(0.9),
+                          .withValues(alpha: 230), // 0.9 * 255 = 229.5 ≈ 230
                       borderRadius: const BorderRadius.only(
                         topRight: Radius.circular(8),
                         bottomRight: Radius.circular(8),
@@ -255,7 +255,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: Theme.of(context).colorScheme.onBackground,
+              color: Theme.of(context).colorScheme.onSurface,
             ),
           ),
         ),
@@ -360,14 +360,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
-                  color: Theme.of(context).colorScheme.onBackground,
+                  color: Theme.of(context).colorScheme.onSurface,
                 ),
-              ),
-              TextButton(
-                onPressed: () {
-                  // 查看全部逻辑
-                },
-                child: const Text('查看全部'),
               ),
             ],
           ),
@@ -485,7 +479,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       Icons.check_circle_outline,
       todo.createdAt,
       onTap,
-      backgroundColor: todo.completed ? Colors.green.withOpacity(0.1) : null,
+      backgroundColor: todo.completed
+          ? Colors.green.withValues(alpha: 26)
+          : null, // 0.1 * 255 = 25.5 ≈ 26
       iconColor:
           todo.completed ? Colors.green : Theme.of(context).colorScheme.primary,
     );

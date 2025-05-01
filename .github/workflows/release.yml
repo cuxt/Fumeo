@@ -1,7 +1,7 @@
-name: "release"
+name: 'release'
 on:
   push:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
   release-to-gitHub:
@@ -45,7 +45,6 @@ jobs:
           echo "SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY}" >> .env
           flutter build apk --split-per-abi
 
-
       - name: Build Web
         run: flutter build web
 
@@ -74,18 +73,23 @@ jobs:
         run: |
           # 获取最后一个tag
           last_tag=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
-          
+
           if [ -z "$last_tag" ]; then
             # 如果没有之前的tag，获取所有提交
-            changelog=$(git log --format="%B" --no-merges)
+            changelog=$(git log --pretty=format:"- %s" --no-merges)
           else
             # 如果有之前的tag，获取从上个tag到现在的提交
-            changelog=$(git log --format="%B" --no-merges ${last_tag}..HEAD)
+            changelog=$(git log --pretty=format:"- %s" --no-merges ${last_tag}..HEAD)
           fi
-          
+
+          # 如果没有有效的changelog内容，添加默认信息
+          if [ -z "$changelog" ]; then
+            changelog="- 此版本包含一些改进和错误修复"
+          fi
+
           # 将changelog保存到文件中
           echo "$changelog" > CHANGELOG.txt
-          
+
           # 设置多行环境变量
           echo 'changelog<<EOF' >> $GITHUB_ENV
           cat CHANGELOG.txt >> $GITHUB_ENV
@@ -106,7 +110,7 @@ jobs:
             web.zip
           body: |
             由提交 ${{ github.sha }} 自动触发编译生成的 Release
-            
+
             更新内容：
             ${{ env.changelog }}
           draft: false

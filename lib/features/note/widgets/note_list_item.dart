@@ -57,14 +57,17 @@ class NoteListItem extends StatelessWidget {
                   .textTheme
                   .bodySmall
                   ?.color
-                  ?.withOpacity(0.7),
+                  ?.withValues(alpha: 179), // 0.7 * 255 = 178.5 ≈ 179
             ),
           ),
         ],
       ),
       selected: isSelected,
       tileColor: isSelected
-          ? Theme.of(context).colorScheme.primaryContainer.withOpacity(0.2)
+          ? Theme.of(context)
+              .colorScheme
+              .primaryContainer
+              .withValues(alpha: 51) // 0.2 * 255 = 51
           : null,
       onTap: onTap,
       trailing: IconButton(

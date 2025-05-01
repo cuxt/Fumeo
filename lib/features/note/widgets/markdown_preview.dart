@@ -49,11 +49,14 @@ class MarkdownPreview extends StatelessWidget {
   }
 
   Future<void> _launchURL(String? url) async {
-    if (url == null) return;
+    if (url == null || url.isEmpty) return;
 
     final Uri uri = Uri.parse(url);
     if (await canLaunchUrl(uri)) {
-      await launchUrl(uri);
+      await launchUrl(
+        uri,
+        mode: LaunchMode.externalApplication, // 在外部浏览器中打开
+      );
     }
   }
 }

@@ -77,7 +77,8 @@ class _AboutScreenState extends State<AboutScreen> {
                             shape: BoxShape.circle,
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withOpacity(0.1),
+                                color: Colors.black.withValues(
+                                    alpha: 26), // 0.1 * 255 = 25.5 ≈ 26
                                 blurRadius: 8,
                                 offset: const Offset(0, 4),
                               ),
@@ -88,22 +89,16 @@ class _AboutScreenState extends State<AboutScreen> {
                               width: 100,
                               height: 100,
                               decoration: BoxDecoration(
-                                color: colorScheme.primary.withOpacity(0.9),
+                                color: colorScheme.primary
+                                    .withValues(alpha: 230), // 0.9 * 255 ≈ 230
                               ),
                               child: Center(
-                                // 这里使用Icon作为临时替代，您可以替换为实际的应用图标
-                                child: Icon(
-                                  Icons.note_alt_outlined,
-                                  size: 60,
-                                  color: Colors.white,
+                                child: Image.asset(
+                                  'assets/img/logo.png',
+                                  width: 100,
+                                  height: 100,
+                                  fit: BoxFit.cover,
                                 ),
-                                // 若要使用实际应用图标，请取消下面注释并提供正确的图标路径
-                                // child: Image.asset(
-                                //   'assets/img/app_icon.png',
-                                //   width: 100,
-                                //   height: 100,
-                                //   fit: BoxFit.cover,
-                                // ),
                               ),
                             ),
                           ),
@@ -145,7 +140,8 @@ class _AboutScreenState extends State<AboutScreen> {
                     ),
                     child: Card(
                       elevation: 0,
-                      color: colorScheme.surfaceVariant.withOpacity(0.5),
+                      color: colorScheme.surfaceContainerHighest
+                          .withValues(alpha: 128), // 0.5 * 255 = 127.5 ≈ 128
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -197,7 +193,8 @@ class _AboutScreenState extends State<AboutScreen> {
                   Container(
                     width: double.infinity,
                     padding: const EdgeInsets.symmetric(vertical: 24),
-                    color: colorScheme.primaryContainer.withOpacity(0.3),
+                    color: colorScheme.primaryContainer
+                        .withValues(alpha: 77), // 0.3 * 255 ≈ 77
                     child: Column(
                       children: [
                         _buildSectionTitle(context, '联系我们'),
@@ -266,7 +263,8 @@ class _AboutScreenState extends State<AboutScreen> {
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: Colors.grey.withOpacity(0.2)),
+        side: BorderSide(
+            color: Colors.grey.withValues(alpha: 51)), // 0.2 * 255 ≈ 51
       ),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -276,7 +274,8 @@ class _AboutScreenState extends State<AboutScreen> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: colorScheme.primary.withOpacity(0.1),
+                color:
+                    colorScheme.primary.withValues(alpha: 26), // 0.1 * 255 ≈ 26
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(
@@ -315,9 +314,35 @@ class _AboutScreenState extends State<AboutScreen> {
   }
 
   Future<void> _launchURL(String url) async {
-    final Uri uri = Uri.parse(url);
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri);
+    try {
+      final Uri uri = Uri.parse(url);
+      if (!await canLaunchUrl(uri)) {
+        // 如果无法打开链接，显示提示而不是抛出异常
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('无法打开链接: $url'),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
+        return;
+      }
+
+      await launchUrl(
+        uri,
+        mode: LaunchMode.externalApplication, // 在外部浏览器中打开
+      );
+    } catch (e) {
+      // 捕获所有可能的异常，包括URL格式错误
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('打开链接时出错: ${e.toString()}'),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
     }
   }
 }

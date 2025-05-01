@@ -3,10 +3,8 @@
 #
 
 list(APPEND FLUTTER_PLUGIN_LIST
-  app_links
   file_selector_windows
   permission_handler_windows
-  tencent_cloud_chat_sdk
   url_launcher_windows
 )
 

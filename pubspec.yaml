@@ -2,7 +2,7 @@ name: fumeo
 description: 'Fumeo'
 publish_to: 'none'
 
-version: 1.1.0+19
+version: 2.0.0+20
 
 environment:
   sdk: ^3.6.1
@@ -10,38 +10,40 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_localizations:
+    sdk: flutter
 
-  awesome_snackbar_content: ^0.1.4
+  awesome_snackbar_content: ^0.1.5
   cupertino_icons: ^1.0.8
-  dio: ^5.7.0
+  dio: ^5.8.0+1
   flutter_highlighter: ^0.1.1
-  flutter_image_compress: ^2.3.0
-  flutter_markdown: ^0.6.15
+  flutter_image_compress: ^2.4.0
+  flutter_markdown: ^0.7.7
   flutter_markdown_latex: ^0.3.4
-  flutter_slidable: ^3.1.1
-  fluttertoast: ^8.2.8
-  get: ^4.6.6
-  hive_ce: ^2.7.0+1
-  hive_ce_flutter: ^2.1.0
-  http: ^1.0.0
-  image_picker: ^0.8.9
-  intl: ^0.19.0
-  markdown: ^7.2.2
-  package_info_plus: ^8.1.0
+  fluttertoast: ^8.2.12
+  hive_ce: ^2.10.1
+  hive_ce_flutter: ^2.2.0
+  http: ^1.3.0
+  image_picker: ^1.0.8
+  markdown: ^7.3.0
+  package_info_plus: ^8.3.0
   path_provider: ^2.1.5
-  shared_preferences: ^2.4.0
+  shared_preferences: ^2.5.3
   url_launcher: ^6.3.1
-  webview_flutter: ^4.10.0
-  yaml: ^3.1.2
-  heroicons: ^0.9.0
-  sqflite: ^2.4.1
+  webview_flutter: ^4.11.0
+  yaml: ^3.1.3
+  heroicons: ^0.11.0
+  sqflite: ^2.4.2
   open_file: ^3.5.10
-  permission_handler: ^10.4.5
-  path: ^1.9.0
-  flutter_syntax_view: ^4.1.4
-  tencent_cloud_chat_sdk: ^8.4.6667
-  supabase_flutter: ^2.8.3
+  permission_handler: ^12.0.0+1
+  path: ^1.9.1
+  flutter_syntax_view: ^4.1.7
   flutter_dotenv: ^5.2.1
+  go_router: ^15.1.1
+  provider: ^6.1.2
+  uuid: ^4.3.3
+  intl: ^0.19.0
+  flutter_colorpicker: ^1.0.3
 
 dev_dependencies:
   flutter_test:
@@ -53,6 +55,5 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   assets:
-    - lib/images/
-    - lib/core/theme/
+    - assets/img/
     - .env

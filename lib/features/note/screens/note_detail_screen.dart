@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../providers/note_provider.dart';
+import 'package:fumeo/core/providers/app_state.dart'; // 添加AppState导入
 import '../widgets/markdown_editor.dart';
 import '../widgets/markdown_preview.dart';
 
@@ -22,15 +22,18 @@ class _NoteDetailScreenState extends State<NoteDetailScreen> {
     super.initState();
     // 确保在初始化时选择正确的笔记
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final noteProvider = Provider.of<NoteProvider>(context, listen: false);
-      noteProvider.selectNote(widget.noteId);
+      // 通过AppState获取NoteProvider
+      final appState = Provider.of<AppState>(context, listen: false);
+      appState.noteProvider.selectNote(widget.noteId);
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<NoteProvider>(
-      builder: (context, noteProvider, child) {
+    // 使用AppState的Consumer获取noteProvider
+    return Consumer<AppState>(
+      builder: (context, appState, child) {
+        final noteProvider = appState.noteProvider;
         final selectedNote = noteProvider.selectedNote;
 
         return Scaffold(
@@ -50,22 +53,22 @@ class _NoteDetailScreenState extends State<NoteDetailScreen> {
               if (selectedNote != null && !_isPreviewMode)
                 _isSaving
                     ? Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        alignment: Alignment.center,
-                        child: const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                            color: Colors.white,
-                            strokeWidth: 2,
-                          ),
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      alignment: Alignment.center,
+                      child: const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          color: Colors.white,
+                          strokeWidth: 2,
                         ),
-                      )
-                    : IconButton(
-                        icon: const Icon(Icons.save),
-                        tooltip: '保存笔记',
-                        onPressed: () => _saveNote(context, noteProvider),
                       ),
+                    )
+                    : IconButton(
+                      icon: const Icon(Icons.save),
+                      tooltip: '保存笔记',
+                      onPressed: () => _saveNote(context, noteProvider),
+                    ),
               // 预览/编辑模式切换按钮
               if (selectedNote != null)
                 IconButton(
@@ -85,33 +88,30 @@ class _NoteDetailScreenState extends State<NoteDetailScreen> {
     );
   }
 
-  Widget _buildContent(NoteProvider noteProvider) {
+  Widget _buildContent(noteProvider) {
     final selectedNote = noteProvider.selectedNote;
 
     if (selectedNote == null) {
-      return const Center(
-        child: CircularProgressIndicator(),
-      );
+      return const Center(child: CircularProgressIndicator());
     }
 
     return _isPreviewMode
         ? MarkdownPreview(markdownData: selectedNote.content)
         : MarkdownEditor(
-            note: selectedNote,
-            onTitleChanged: (title) => noteProvider.updateNote(
-              id: selectedNote.id,
-              title: title,
-            ),
-            onContentChanged: (content) => noteProvider.updateNote(
-              id: selectedNote.id,
-              content: content,
-            ),
-            onSave: () => _saveNote(context, noteProvider),
-          );
+          note: selectedNote,
+          onTitleChanged:
+              (title) =>
+                  noteProvider.updateNote(id: selectedNote.id, title: title),
+          onContentChanged:
+              (content) => noteProvider.updateNote(
+                id: selectedNote.id,
+                content: content,
+              ),
+          onSave: () => _saveNote(context, noteProvider),
+        );
   }
 
-  Future<void> _saveNote(
-      BuildContext context, NoteProvider noteProvider) async {
+  Future<void> _saveNote(BuildContext context, noteProvider) async {
     final selectedNote = noteProvider.selectedNote;
     if (selectedNote == null) return;
 

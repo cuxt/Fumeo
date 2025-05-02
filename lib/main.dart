@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:hive_ce_flutter/adapters.dart';
 import 'package:provider/provider.dart';
 import 'package:fumeo/core/providers/app_state.dart';
@@ -8,11 +6,10 @@ import 'package:fumeo/core/router/app_router.dart';
 import 'package:fumeo/core/theme/theme_controller.dart';
 import 'package:fumeo/features/update/providers/update_controller.dart';
 import 'package:fumeo/features/todo/providers/todo_provider.dart';
-import 'package:fumeo/features/note/providers/note_provider.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await dotenv.load(fileName: ".env");
 
   // 初始化Hive数据库
   await Hive.initFlutter();
@@ -31,21 +28,19 @@ class FumeoApp extends StatelessWidget {
     // 使用MultiProvider提供全局状态
     return MultiProvider(
       providers: [
-        // 直接提供主题控制器
         ChangeNotifierProvider(create: (_) => ThemeController()),
-        // 应用状态
         ChangeNotifierProvider(create: (_) => AppState()),
-        // 添加独立的 NoteProvider
-        ChangeNotifierProvider(create: (_) => NoteProvider()),
-        // 添加独立的 TodoProvider
+        // 移除独立的NoteProvider，使用AppState中的NoteProvider实例
+        // ChangeNotifierProvider(create: (_) => NoteProvider()),
         ChangeNotifierProvider(create: (_) => TodoProvider()),
-        // 添加更新控制器
-        ChangeNotifierProvider(create: (_) {
-          final controller = UpdateController();
-          // 初始化更新控制器，启用自动检查
-          controller.initialize();
-          return controller;
-        }),
+        ChangeNotifierProvider(
+          create: (_) {
+            final controller = UpdateController();
+            // 初始化更新控制器，启用自动检查
+            controller.initialize();
+            return controller;
+          },
+        ),
       ],
       child: Consumer2<ThemeController, AppState>(
         builder: (context, themeController, appState, _) {
@@ -54,18 +49,16 @@ class FumeoApp extends StatelessWidget {
             theme: themeController.lightTheme,
             darkTheme: themeController.darkTheme,
             themeMode: themeController.themeMode,
-            locale: appState.locale,
-            supportedLocales: const [
-              Locale('zh', 'CN'),
-              Locale('en', 'US'),
-            ],
+            routerConfig: AppRouter().router,
+            debugShowCheckedModeBanner: false,
+            // 添加本地化支持
+            locale: const Locale('zh', 'CN'),
+            supportedLocales: const [Locale('zh', 'CN')],
             localizationsDelegates: const [
               GlobalMaterialLocalizations.delegate,
               GlobalWidgetsLocalizations.delegate,
               GlobalCupertinoLocalizations.delegate,
             ],
-            routerConfig: AppRouter().router,
-            debugShowCheckedModeBanner: false,
           );
         },
       ),

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:fumeo/core/services/feature_service.dart'; // 导入功能服务
 import 'package:go_router/go_router.dart'; // 添加go_router导入
 import 'package:provider/provider.dart';
-import 'package:fumeo/features/note/providers/note_provider.dart'; // 导入笔记提供者
+import 'package:fumeo/core/providers/app_state.dart'; // 添加AppState导入
 import 'package:fumeo/features/todo/providers/todo_provider.dart'; // 导入待办提供者
 import 'package:fumeo/features/note/models/note_item.dart'; // 导入笔记模型
 import 'package:fumeo/features/todo/models/todo_item.dart'; // 导入待办模型
@@ -39,10 +39,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     _hintAnimation = Tween<Offset>(
       begin: const Offset(-0.2, 0.0),
       end: const Offset(0.0, 0.0),
-    ).animate(CurvedAnimation(
-      parent: _hintController,
-      curve: Curves.easeOutCubic,
-    ));
+    ).animate(
+      CurvedAnimation(parent: _hintController, curve: Curves.easeOutCubic),
+    );
   }
 
   @override
@@ -74,15 +73,13 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     // 通过Provider.of获取全局Provider实例
-    Provider.of<NoteProvider>(context, listen: false);
+    Provider.of<AppState>(context, listen: false);
     Provider.of<TodoProvider>(context, listen: false);
 
     return Scaffold(
       key: _scaffoldKey,
       // 侧边栏 - 显示所有功能
-      drawer: AppDrawer(
-        featureMap: _featureService.getDrawerFeatures(),
-      ),
+      drawer: AppDrawer(featureMap: _featureService.getDrawerFeatures()),
 
       // 应用栏
       appBar: AppBar(
@@ -129,8 +126,10 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             // 主要内容 - 使用ListView而不是Column以支持滚动
             SafeArea(
               child: ListView(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 24,
+                ),
                 children: [
                   // 欢迎信息
                   _buildWelcomeSection(context),
@@ -159,10 +158,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                     width: 40,
                     height: 60,
                     decoration: BoxDecoration(
-                      color: Theme.of(context)
-                          .colorScheme
-                          .primary
-                          .withValues(alpha: 230), // 0.9 * 255 = 229.5 ≈ 230
+                      color: Theme.of(context).colorScheme.primary.withValues(
+                        alpha: 230,
+                      ), // 0.9 * 255 = 229.5 ≈ 230
                       borderRadius: const BorderRadius.only(
                         topRight: Radius.circular(8),
                         bottomRight: Radius.circular(8),
@@ -230,10 +228,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 ),
                 Text(
                   '欢迎使用Fumeo应用',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey[600],
-                  ),
+                  style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                 ),
               ],
             ),
@@ -313,9 +308,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   ) {
     return Card(
       elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(16),
@@ -324,11 +317,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
-                icon,
-                size: 36,
-                color: color,
-              ),
+              Icon(icon, size: 36, color: color),
               const SizedBox(height: 8),
               Text(
                 title,
@@ -368,10 +357,10 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         ),
 
         // 使用Consumer获取笔记和待办数据
-        Consumer2<NoteProvider, TodoProvider>(
-          builder: (context, noteProvider, todoProvider, child) {
+        Consumer2<AppState, TodoProvider>(
+          builder: (context, appState, todoProvider, child) {
             // 合并笔记和待办事项到一个列表，并按更新/创建时间排序
-            final recentItems = _getRecentItems(noteProvider, todoProvider);
+            final recentItems = _getRecentItems(appState, todoProvider);
 
             if (recentItems.isEmpty) {
               return Center(
@@ -387,10 +376,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                       const SizedBox(height: 12),
                       Text(
                         '暂无最近项目',
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: Colors.grey[600],
-                        ),
+                        style: TextStyle(fontSize: 16, color: Colors.grey[600]),
                       ),
                     ],
                   ),
@@ -399,30 +385,32 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             }
 
             return Column(
-              children: recentItems.take(5).map((item) {
-                if (item is NoteItem) {
-                  // 构建笔记卡片
-                  return _buildNoteCard(context, item, () {
-                    // 点击笔记时导航到笔记详情页
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => ChangeNotifierProvider.value(
-                          value: noteProvider,
-                          child: NoteDetailScreen(noteId: item.id),
-                        ),
-                      ),
-                    );
-                  });
-                } else if (item is TodoItem) {
-                  // 构建待办事项卡片
-                  return _buildTodoCard(context, item, () {
-                    // 点击待办时导航到待办列表页
-                    context.go('/todo');
-                  });
-                }
-                return const SizedBox.shrink();
-              }).toList(),
+              children:
+                  recentItems.take(5).map((item) {
+                    if (item is NoteItem) {
+                      // 构建笔记卡片
+                      return _buildNoteCard(context, item, () {
+                        // 点击笔记时导航到笔记详情页
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder:
+                                (context) => ChangeNotifierProvider.value(
+                                  value: appState,
+                                  child: NoteDetailScreen(noteId: item.id),
+                                ),
+                          ),
+                        );
+                      });
+                    } else if (item is TodoItem) {
+                      // 构建待办事项卡片
+                      return _buildTodoCard(context, item, () {
+                        // 点击待办时导航到待办列表页
+                        context.go('/todo');
+                      });
+                    }
+                    return const SizedBox.shrink();
+                  }).toList(),
             );
           },
         ),
@@ -431,9 +419,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   }
 
   // 从笔记和待办事项中获取最近项目
-  List<dynamic> _getRecentItems(
-      NoteProvider noteProvider, TodoProvider todoProvider) {
-    final notes = noteProvider.notes;
+  List<dynamic> _getRecentItems(AppState appState, TodoProvider todoProvider) {
+    final notes = appState.noteProvider.notes; // 通过noteProvider获取notes
     final todos = todoProvider.items;
 
     // 合并两个列表
@@ -453,7 +440,10 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
   // 构建笔记卡片
   Widget _buildNoteCard(
-      BuildContext context, NoteItem note, VoidCallback onTap) {
+    BuildContext context,
+    NoteItem note,
+    VoidCallback onTap,
+  ) {
     // 从笔记内容中提取摘要（去掉Markdown标记）
     final summary = _extractNoteSummary(note.content);
 
@@ -469,7 +459,10 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
   // 构建待办事项卡片
   Widget _buildTodoCard(
-      BuildContext context, TodoItem todo, VoidCallback onTap) {
+    BuildContext context,
+    TodoItem todo,
+    VoidCallback onTap,
+  ) {
     final statusText = todo.completed ? '（已完成）' : '（待完成）';
 
     return _buildRecentItemCard(
@@ -479,9 +472,10 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       Icons.check_circle_outline,
       todo.createdAt,
       onTap,
-      backgroundColor: todo.completed
-          ? Colors.green.withValues(alpha: 26)
-          : null, // 0.1 * 255 = 25.5 ≈ 26
+      backgroundColor:
+          todo.completed
+              ? Colors.green.withValues(alpha: 26)
+              : null, // 0.1 * 255 = 25.5 ≈ 26
       iconColor:
           todo.completed ? Colors.green : Theme.of(context).colorScheme.primary,
     );
@@ -521,9 +515,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   }) {
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       color: backgroundColor,
       child: InkWell(
         onTap: onTap,
@@ -560,18 +552,12 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                       description,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey[600],
-                      ),
+                      style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                     ),
                     const SizedBox(height: 4),
                     Text(
                       _formatTime(time),
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey[500],
-                      ),
+                      style: TextStyle(fontSize: 12, color: Colors.grey[500]),
                     ),
                   ],
                 ),
@@ -625,10 +611,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
             children: [
               const Text(
                 '创建新内容',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 20),
               ListTile(
@@ -644,10 +627,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 },
               ),
               ListTile(
-                leading: Icon(
-                  Icons.add_task,
-                  color: Colors.green,
-                ),
+                leading: Icon(Icons.add_task, color: Colors.green),
                 title: const Text('新建待办'),
                 onTap: () {
                   Navigator.pop(context);

@@ -1,7 +1,5 @@
 import 'dart:math' as math;
 import 'package:dio/dio.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -23,19 +21,18 @@ class GithubService {
         'type': 'github',
         'url': apiUrl,
         'owner': repoOwner,
-        'repo': repoName
+        'repo': repoName,
       };
     } else {
-      return {
-        'type': 'custom',
-        'url': customApiUrl,
-      };
+      return {'type': 'custom', 'url': customApiUrl};
     }
   }
 
   /// 设置更新源
-  static Future<void> setUpdateSource(
-      {bool? useGitHub, String? customApiUrl}) async {
+  static Future<void> setUpdateSource({
+    bool? useGitHub,
+    String? customApiUrl,
+  }) async {
     final prefs = await SharedPreferences.getInstance();
     if (useGitHub != null) {
       await prefs.setBool('update_use_github', useGitHub);
@@ -47,13 +44,18 @@ class GithubService {
 
   /// 检查更新
   static Future<Map<String, dynamic>?> checkForUpdates(
-      String currentVersion) async {
+    String currentVersion,
+  ) async {
     try {
       final source = await getUpdateSource();
 
       if (source['type'] == 'github') {
         return await _checkGithubUpdates(
-            source['url']!, source['owner']!, source['repo']!, currentVersion);
+          source['url']!,
+          source['owner']!,
+          source['repo']!,
+          currentVersion,
+        );
       } else {
         return await _checkCustomServerUpdates(source['url']!, currentVersion);
       }
@@ -65,17 +67,21 @@ class GithubService {
 
   /// 从GitHub检查更新
   static Future<Map<String, dynamic>?> _checkGithubUpdates(
-      String apiUrl, String owner, String repo, String currentVersion) async {
+    String apiUrl,
+    String owner,
+    String repo,
+    String currentVersion,
+  ) async {
     try {
       // 添加缓存系数防止GitHub API限流
       final cacheBreaker = DateTime.now().millisecondsSinceEpoch;
-      final response = await http.get(
-        Uri.parse('$apiUrl/$owner/$repo/releases/latest?_cb=$cacheBreaker'),
-        headers: {'Accept': 'application/vnd.github.v3+json'},
+      final response = await Dio().get(
+        '$apiUrl/$owner/$repo/releases/latest?_cb=$cacheBreaker',
+        options: Options(headers: {'Accept': 'application/vnd.github.v3+json'}),
       );
 
       if (response.statusCode == 200) {
-        final data = json.decode(response.body);
+        final data = response.data;
         final latestVersion = data['tag_name'].toString().replaceAll('v', '');
 
         // 检查新版本
@@ -101,10 +107,7 @@ class GithubService {
       } else if (response.statusCode == 403) {
         // GitHub API限流，记录错误
         debugPrint('GitHub API限流，请稍后再试');
-        return {
-          'error': 'rate_limited',
-          'message': 'GitHub API限流，请稍后再试',
-        };
+        return {'error': 'rate_limited', 'message': 'GitHub API限流，请稍后再试'};
       }
       return null;
     } catch (e) {
@@ -115,12 +118,14 @@ class GithubService {
 
   /// 从自定义服务器检查更新
   static Future<Map<String, dynamic>?> _checkCustomServerUpdates(
-      String apiUrl, String currentVersion) async {
+    String apiUrl,
+    String currentVersion,
+  ) async {
     try {
-      final response = await http.get(Uri.parse(apiUrl));
+      final response = await Dio().get(apiUrl);
 
       if (response.statusCode == 200) {
-        final data = json.decode(response.body);
+        final data = response.data;
         final latestVersion = data['version'].toString();
 
         // 检查新版本
@@ -129,11 +134,13 @@ class GithubService {
             'version': latestVersion,
             'description': data['description'] ?? '无更新说明',
             'downloadUrls': List<Map<String, String>>.from(
-              data['downloadUrls']?.map((url) => {
-                        'name': url['name'] ?? '',
-                        'url': url['url'] ?? '',
-                        'isCustom': url['isCustom'] ?? 'false',
-                      }) ??
+              data['downloadUrls']?.map(
+                    (url) => {
+                      'name': url['name'] ?? '',
+                      'url': url['url'] ?? '',
+                      'isCustom': url['isCustom'] ?? 'false',
+                    },
+                  ) ??
                   [],
             ),
             'publishedAt': data['publishedAt'] ?? '',
@@ -183,7 +190,8 @@ class GithubService {
 
           // 延迟一段时间后重试
           await Future.delayed(
-              Duration(seconds: math.pow(2, retryCount).toInt()));
+            Duration(seconds: math.pow(2, retryCount).toInt()),
+          );
           debugPrint('下载重试 $retryCount/$maxRetries');
         }
       }
@@ -200,9 +208,11 @@ class GithubService {
     final latestParts = latestVersion.split('.');
     final currentParts = currentVersion.split('.');
 
-    for (int i = 0;
-        i < math.min(latestParts.length, currentParts.length);
-        i++) {
+    for (
+      int i = 0;
+      i < math.min(latestParts.length, currentParts.length);
+      i++
+    ) {
       final latest = int.parse(latestParts[i]);
       final current = int.parse(currentParts[i]);
 
@@ -219,14 +229,16 @@ class GithubService {
   /// 测试更新服务器连接
   static Future<Map<String, dynamic>> testUpdateServer(String apiUrl) async {
     try {
-      final response = await http.get(
-        Uri.parse(apiUrl),
-        headers: {'Accept': 'application/json'},
-      ).timeout(const Duration(seconds: 10));
+      final response = await Dio()
+          .get(
+            apiUrl,
+            options: Options(headers: {'Accept': 'application/json'}),
+          )
+          .timeout(const Duration(seconds: 10));
 
       if (response.statusCode == 200) {
         try {
-          final data = json.decode(response.body);
+          final data = response.data;
           if (data.containsKey('version')) {
             return {
               'success': true,
@@ -234,28 +246,16 @@ class GithubService {
               'data': data,
             };
           } else {
-            return {
-              'success': false,
-              'message': '响应格式不正确，缺少版本信息',
-            };
+            return {'success': false, 'message': '响应格式不正确，缺少版本信息'};
           }
         } catch (e) {
-          return {
-            'success': false,
-            'message': '解析响应内容失败：$e',
-          };
+          return {'success': false, 'message': '解析响应内容失败：$e'};
         }
       } else {
-        return {
-          'success': false,
-          'message': '服务器返回错误码：${response.statusCode}',
-        };
+        return {'success': false, 'message': '服务器返回错误码：${response.statusCode}'};
       }
     } catch (e) {
-      return {
-        'success': false,
-        'message': '连接失败：$e',
-      };
+      return {'success': false, 'message': '连接失败：$e'};
     }
   }
 }

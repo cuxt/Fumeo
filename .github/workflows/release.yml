@@ -71,15 +71,25 @@ jobs:
       - name: Generate Changelog
         id: changelog
         run: |
-          # 获取最后一个tag
-          last_tag=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          # 确保获取所有标签
+          git fetch --tags --force
 
-          if [ -z "$last_tag" ]; then
-            # 如果没有之前的tag，获取所有提交
-            changelog=$(git log --pretty=format:"- %s" --no-merges)
+          # 获取最后两个tag（当前新创建的和之前的最新tag）
+          tags=($(git tag --sort=-committerdate))
+          current_tag="${tags[0]}"
+          previous_tag=""
+
+          # 如果存在至少两个tag，则获取上一个tag
+          if [ ${#tags[@]} -ge 2 ]; then
+            previous_tag="${tags[1]}"
+          fi
+
+          if [ -z "$previous_tag" ]; then
+            # 如果没有之前的tag，获取所有提交（限制数量以防止过大）
+            changelog=$(git log --pretty=format:"- %s" --no-merges -n 50)
           else
             # 如果有之前的tag，获取从上个tag到现在的提交
-            changelog=$(git log --pretty=format:"- %s" --no-merges ${last_tag}..HEAD)
+            changelog=$(git log --pretty=format:"- %s" --no-merges "$previous_tag..$current_tag")
           fi
 
           # 如果没有有效的changelog内容，添加默认信息

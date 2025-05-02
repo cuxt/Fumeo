@@ -3,14 +3,11 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../services/github_service.dart';
 import '../widgets/update_dialog.dart';
-import '../widgets/update_notification.dart';
 
 class UpdateController with ChangeNotifier {
   bool _isChecking = false;
   bool get isChecking => _isChecking;
 
-  // 用于控制更新通知的显示
-  bool _hasShownNotification = false;
   DateTime? _lastCheckTime;
 
   // 更新设置
@@ -29,15 +26,18 @@ class UpdateController with ChangeNotifier {
     _checkInterval = prefs.getInt('update_check_interval') ?? 24;
     _notifyOnlyForStable = prefs.getBool('update_notify_only_stable') ?? true;
     _lastCheckTime = DateTime.fromMillisecondsSinceEpoch(
-        prefs.getInt('update_last_check_time') ?? 0);
+      prefs.getInt('update_last_check_time') ?? 0,
+    );
 
     notifyListeners();
 
     // 检查是否需要自动检查更新
     if (_autoCheckEnabled && _shouldCheckForUpdates()) {
       // 延迟几秒后自动检查，避免影响应用启动速度
-      Future.delayed(const Duration(seconds: 3),
-          () => checkForUpdates(null, silent: true));
+      Future.delayed(
+        const Duration(seconds: 3),
+        () => checkForUpdates(null, silent: true),
+      );
     }
   }
 
@@ -60,8 +60,10 @@ class UpdateController with ChangeNotifier {
   }
 
   // 检查更新
-  Future<void> checkForUpdates(BuildContext? context,
-      {bool silent = false}) async {
+  Future<void> checkForUpdates(
+    BuildContext? context, {
+    bool silent = false,
+  }) async {
     if (_isChecking) return;
 
     _isChecking = true;
@@ -77,13 +79,15 @@ class UpdateController with ChangeNotifier {
       _lastCheckTime = DateTime.now();
       final prefs = await SharedPreferences.getInstance();
       await prefs.setInt(
-          'update_last_check_time', _lastCheckTime!.millisecondsSinceEpoch);
+        'update_last_check_time',
+        _lastCheckTime!.millisecondsSinceEpoch,
+      );
 
       if (updateInfo != null) {
         // 检查是否只提醒稳定版
         bool isStableRelease =
             !updateInfo['version'].toString().contains('beta') &&
-                !updateInfo['version'].toString().contains('alpha');
+            !updateInfo['version'].toString().contains('alpha');
 
         if (_notifyOnlyForStable && !isStableRelease) {
           return;
@@ -91,22 +95,18 @@ class UpdateController with ChangeNotifier {
 
         if (context != null && context.mounted) {
           _showUpdateDialog(context, updateInfo);
-        } else if (!silent && !_hasShownNotification) {
-          // 如果没有上下文或者是静默检查，显示通知
-          UpdateNotification.show(updateInfo);
-          _hasShownNotification = true;
         }
       } else if (!silent && context != null && context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('当前已是最新版本')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('当前已是最新版本')));
       }
     } catch (e) {
       debugPrint('检查更新失败: $e');
       if (!silent && context != null && context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('检查更新失败: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('检查更新失败: $e')));
       }
     } finally {
       _isChecking = false;
@@ -116,7 +116,9 @@ class UpdateController with ChangeNotifier {
 
   // 显示更新对话框
   void _showUpdateDialog(
-      BuildContext context, Map<String, dynamic> updateInfo) {
+    BuildContext context,
+    Map<String, dynamic> updateInfo,
+  ) {
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -136,7 +138,6 @@ class UpdateController with ChangeNotifier {
 
   // 重置通知状态
   void resetNotificationState() {
-    _hasShownNotification = false;
     notifyListeners();
   }
 }

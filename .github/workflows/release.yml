@@ -25,7 +25,7 @@ jobs:
           echo "d56f5187479451eabf01fb78af6dfcb131a6481e" >> /usr/local/lib/android/sdk/licenses/android-sdk-license
           echo "24333f8a63b6825ea9c5514f83c2829b004d1fee" >> /usr/local/lib/android/sdk/licenses/android-sdk-license
           echo "84831b9409646a918e30573bab4c9c91346d8abd" > /usr/local/lib/android/sdk/licenses/android-sdk-preview-license
-          yes | sdkmanager --licenses
+          echo "29.0.13113456" > /usr/local/lib/android/sdk/licenses/android-ndk-license
 
       - name: Decode signing key
         run: echo $SIGNING_KEY | base64 -d > android/app/key.jks

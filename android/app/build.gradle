@@ -20,7 +20,7 @@ android {
     namespace = "com.xbxin.fumeo"
     compileSdk = flutter.compileSdkVersion
     // ndkVersion = flutter.ndkVersion
-    ndkVersion="25.1.8937393"
+    ndkVersion="29.0.13113456"
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17

@@ -30,8 +30,6 @@ class FumeoApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (_) => ThemeController()),
         ChangeNotifierProvider(create: (_) => AppState()),
-        // 移除独立的NoteProvider，使用AppState中的NoteProvider实例
-        // ChangeNotifierProvider(create: (_) => NoteProvider()),
         ChangeNotifierProvider(create: (_) => TodoProvider()),
         ChangeNotifierProvider(
           create: (_) {

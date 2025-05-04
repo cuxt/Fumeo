@@ -281,10 +281,10 @@ packages:
     dependency: "direct main"
     description:
       name: hive_ce
-      sha256: fb6560a993b58921ced4e8afabc6ed4e41ec024d3667f11e12fbd6fbbd4de82a
+      sha256: fdc19336f03ecd01dbc1d1afe69d87ed9336bdf996c5374a25f9c21ef5f2989e
       url: "https://mirrors.tuna.tsinghua.edu.cn/dart-pub/"
     source: hosted
-    version: "2.11.0"
+    version: "2.11.1"
   hive_ce_flutter:
     dependency: "direct main"
     description:
@@ -297,10 +297,10 @@ packages:
     dependency: "direct dev"
     description:
       name: hive_ce_generator
-      sha256: "3534164551c88fc3edb4dec2270d2cf5bf3ca6defa02b8247d9d5bd81eb364a6"
+      sha256: "84940c2fd3cb1d1eb318892cdb666bc0b8023f365f28aefe09b9e5a7222bc740"
       url: "https://mirrors.tuna.tsinghua.edu.cn/dart-pub/"
     source: hosted
-    version: "1.9.0"
+    version: "1.9.1"
   http:
     dependency: transitive
     description:

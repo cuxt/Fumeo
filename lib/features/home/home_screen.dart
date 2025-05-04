@@ -1,12 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:fumeo/core/services/feature_service.dart'; // 导入功能服务
-import 'package:go_router/go_router.dart'; // 添加go_router导入
+import 'services/feature_service.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
-import 'package:fumeo/core/providers/app_state.dart'; // 添加AppState导入
-import 'package:fumeo/features/todo/providers/todo_provider.dart'; // 导入待办提供者
-import 'package:fumeo/features/note/models/note_item.dart'; // 导入笔记模型
-import 'package:fumeo/features/todo/models/todo_item.dart'; // 导入待办模型
-import 'package:fumeo/features/note/screens/note_detail_screen.dart'; // 导入笔记详情页
+import 'package:fumeo/core/providers/app_state.dart';
+import 'package:fumeo/features/note/models/note_item.dart';
+import 'package:fumeo/features/todo/models/todo_item.dart';
+import 'package:fumeo/features/note/screens/note_detail_screen.dart';
 import 'widgets/app_drawer.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -72,9 +71,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    // 通过Provider.of获取全局Provider实例
+    // 只需获取AppState实例
     Provider.of<AppState>(context, listen: false);
-    Provider.of<TodoProvider>(context, listen: false);
 
     return Scaffold(
       key: _scaffoldKey,
@@ -356,11 +354,11 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           ),
         ),
 
-        // 使用Consumer获取笔记和待办数据
-        Consumer2<AppState, TodoProvider>(
-          builder: (context, appState, todoProvider, child) {
+        // 只使用Consumer<AppState>
+        Consumer<AppState>(
+          builder: (context, appState, child) {
             // 合并笔记和待办事项到一个列表，并按更新/创建时间排序
-            final recentItems = _getRecentItems(appState, todoProvider);
+            final recentItems = _getRecentItems(appState);
 
             if (recentItems.isEmpty) {
               return Center(
@@ -418,10 +416,10 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     );
   }
 
-  // 从笔记和待办事项中获取最近项目
-  List<dynamic> _getRecentItems(AppState appState, TodoProvider todoProvider) {
-    final notes = appState.noteProvider.notes; // 通过noteProvider获取notes
-    final todos = todoProvider.items;
+  // 从笔记和待办事项中获取最近项目 - 修改为只接收AppState参数
+  List<dynamic> _getRecentItems(AppState appState) {
+    final notes = appState.noteProvider.notes;
+    final todos = appState.todoProvider.items; // 现在通过appState获取待办事项
 
     // 合并两个列表
     final allItems = <dynamic>[];

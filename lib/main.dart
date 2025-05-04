@@ -5,7 +5,6 @@ import 'package:fumeo/core/providers/app_state.dart';
 import 'package:fumeo/core/router/app_router.dart';
 import 'package:fumeo/core/theme/theme_controller.dart';
 import 'package:fumeo/features/update/providers/update_controller.dart';
-import 'package:fumeo/features/todo/providers/todo_provider.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
 Future<void> main() async {
@@ -25,12 +24,10 @@ class FumeoApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // 使用MultiProvider提供全局状态
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => ThemeController()),
         ChangeNotifierProvider(create: (_) => AppState()),
-        ChangeNotifierProvider(create: (_) => TodoProvider()),
         ChangeNotifierProvider(
           create: (_) {
             final controller = UpdateController();
@@ -49,7 +46,6 @@ class FumeoApp extends StatelessWidget {
             themeMode: themeController.themeMode,
             routerConfig: AppRouter().router,
             debugShowCheckedModeBanner: false,
-            // 添加本地化支持
             locale: const Locale('zh', 'CN'),
             supportedLocales: const [Locale('zh', 'CN')],
             localizationsDelegates: const [

@@ -1,72 +1,88 @@
 import 'package:flutter/material.dart';
 import '../models/feature_model.dart';
 
-/// 功能服务类，用于集中管理应用中的所有功能模块
 class FeatureService {
-  /// 获取功能映射表，按类别组织功能列表
-  static Map<String, List<FeatureModel>> getFeatureMap() {
-    return {
-      '笔记管理': [
-        FeatureModel(
-          text: '笔记列表',
-          icon: Icons.note_alt_outlined,
-          route: '/notes',
-        ),
-        FeatureModel(
-          text: '笔记分类',
-          icon: Icons.category_outlined,
-          route: '/notes/categories',
-        ),
-        FeatureModel(
-          text: '回收站',
-          icon: Icons.delete_outline,
-          route: '/notes/trash',
-        ),
-      ],
-      '任务管理': [
-        FeatureModel(
-          text: '任务清单',
-          icon: Icons.task_alt_outlined,
-          route: '/tasks',
-        ),
-        FeatureModel(
-          text: '创建任务',
-          icon: Icons.add_task_outlined,
-          route: '/tasks/create',
-        ),
-        FeatureModel(
-          text: '日历视图',
-          icon: Icons.calendar_today_outlined,
-          route: '/tasks/calendar',
-        ),
-        FeatureModel(
-          text: '统计分析',
-          icon: Icons.bar_chart_outlined,
-          route: '/tasks/stats',
-        ),
-      ],
-      '设置与工具': [
-        FeatureModel(
-          text: '应用设置',
-          icon: Icons.settings_outlined,
-          route: '/settings',
-        ),
-        FeatureModel(
-          text: '数据备份',
-          icon: Icons.backup_outlined,
-          route: '/settings/backup',
-        ),
-        FeatureModel(
-          text: '主题设置',
-          icon: Icons.color_lens_outlined,
-          route: '/settings/theme',
-        ),
-        FeatureModel(
-          text: '关于应用',
-          icon: Icons.info_outline,
-          route: '/about',
-        ),
-      ],
-    };
+  // 单例模式
+  static final FeatureService _instance = FeatureService._internal();
+
+  factory FeatureService() {
+    return _instance;
+  }
+
+  FeatureService._internal();
+
+  // 所有功能模块列表
+  final Map<String, List<FeatureModel>> featureMap = {
+    '笔记': [FeatureModel(text: '笔记列表', route: '/note', icon: Icons.note)],
+    '待办': [
+      FeatureModel(
+        text: '待办列表',
+        route: '/todo',
+        icon: Icons.check_circle_outline,
+      ),
+    ],
+    '探索': [FeatureModel(text: '探索', route: '/explore', icon: Icons.explore)],
+    '设置': [
+      FeatureModel(text: '设置', route: '/settings', icon: Icons.settings),
+      FeatureModel(
+        text: '关于',
+        route: '/settings/about',
+        icon: Icons.info_outline,
+      ),
+      FeatureModel(
+        text: '主题设置',
+        route: '/settings/theme',
+        icon: Icons.color_lens,
+      ),
+    ],
+  };
+
+  // 获取所有功能
+  Map<String, List<FeatureModel>> getAllFeatures() {
+    return featureMap;
+  }
+
+  // 获取侧边栏显示的功能列表
+  Map<String, List<FeatureModel>> getDrawerFeatures() {
+    final result = <String, List<FeatureModel>>{};
+
+    featureMap.forEach((category, features) {
+      final drawerFeatures = features.toList();
+      if (drawerFeatures.isNotEmpty) {
+        result[category] = drawerFeatures;
+      }
+    });
+
+    return result;
+  }
+
+  // 根据类别名称获取功能列表
+  List<FeatureModel>? getFeaturesByCategory(String category) {
+    return featureMap[category];
+  }
+
+  // 搜索功能
+  Map<String, List<FeatureModel>> searchFeatures(String query) {
+    if (query.isEmpty) {
+      return featureMap;
+    }
+
+    final result = <String, List<FeatureModel>>{};
+
+    featureMap.forEach((category, features) {
+      final matchedFeatures =
+          features
+              .where(
+                (feature) =>
+                    feature.text.toLowerCase().contains(query.toLowerCase()),
+              )
+              .toList();
+
+      if (matchedFeatures.isNotEmpty) {
+        result[category] = matchedFeatures;
+      }
+    });
+
+    return result;
   }
 }

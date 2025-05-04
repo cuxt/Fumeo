@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'providers/todo_provider.dart';
+import 'package:fumeo/core/providers/app_state.dart';
 import 'widgets/todo_item_tile.dart';
 import 'widgets/todo_stats_card.dart';
 import 'widgets/todo_filter_bar.dart';
@@ -17,7 +17,6 @@ class _TodoScreenState extends State<TodoScreen> {
   final TextEditingController _controller = TextEditingController();
   bool _isLoading = false;
   String _filterMode = 'all'; // 'all', 'active', 'completed'
-  final TodoProvider _todoProvider = TodoProvider();
 
   @override
   void dispose() {
@@ -27,31 +26,28 @@ class _TodoScreenState extends State<TodoScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider.value(
-      value: _todoProvider,
-      child: Scaffold(
-        appBar: AppBar(
-          title: const Text('待办事项'),
-          backgroundColor: Theme.of(context).colorScheme.primary,
-          foregroundColor: Colors.white,
-          actions: [
-            // 刷新按钮
-            IconButton(
-              icon: const Icon(Icons.refresh),
-              tooltip: '刷新',
-              onPressed: _refreshTodos,
-            ),
-            // 清除已完成按钮
-            IconButton(
-              icon: const Icon(Icons.cleaning_services),
-              tooltip: '清除已完成',
-              onPressed: () => _showClearCompletedDialog(context),
-            ),
-          ],
-        ),
-        body: _buildBody(),
-        floatingActionButton: _buildFloatingActionButton(),
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('待办事项'),
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        foregroundColor: Colors.white,
+        actions: [
+          // 刷新按钮
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            tooltip: '刷新',
+            onPressed: _refreshTodos,
+          ),
+          // 清除已完成按钮
+          IconButton(
+            icon: const Icon(Icons.cleaning_services),
+            tooltip: '清除已完成',
+            onPressed: () => _showClearCompletedDialog(context),
+          ),
+        ],
       ),
+      body: _buildBody(),
+      floatingActionButton: _buildFloatingActionButton(),
     );
   }
 
@@ -61,7 +57,10 @@ class _TodoScreenState extends State<TodoScreen> {
     });
 
     try {
-      await _todoProvider.refreshTodos();
+      // 通过AppState获取TodoProvider进行刷新
+      final todoProvider =
+          Provider.of<AppState>(context, listen: false).todoProvider;
+      await todoProvider.refreshTodos();
     } finally {
       if (mounted) {
         setState(() {
@@ -72,12 +71,13 @@ class _TodoScreenState extends State<TodoScreen> {
   }
 
   Widget _buildBody() {
-    return Consumer<TodoProvider>(
-      builder: (context, todoProvider, _) {
+    // 使用Consumer获取AppState并访问其todoProvider
+    return Consumer<AppState>(
+      builder: (context, appState, _) {
+        final todoProvider = appState.todoProvider;
+
         if (todoProvider.isLoading || _isLoading) {
-          return const Center(
-            child: CircularProgressIndicator(),
-          );
+          return const Center(child: CircularProgressIndicator());
         }
 
         final allTodos = todoProvider.items;
@@ -103,23 +103,24 @@ class _TodoScreenState extends State<TodoScreen> {
 
             // 待办事项列表
             Expanded(
-              child: todos.isEmpty
-                  ? _buildEmptyState()
-                  : ListView.separated(
-                      padding: const EdgeInsets.only(bottom: 80),
-                      itemCount: todos.length,
-                      separatorBuilder: (_, __) => const Divider(height: 1),
-                      itemBuilder: (context, index) {
-                        final todo = todos[index];
-                        return TodoItemTile(
-                          item: todo,
-                          onToggle: todoProvider.toggleTodoStatus,
-                          onDelete: (id) =>
-                              _showDeleteConfirmDialog(context, id),
-                          onEdit: todoProvider.editTodo,
-                        );
-                      },
-                    ),
+              child:
+                  todos.isEmpty
+                      ? _buildEmptyState()
+                      : ListView.separated(
+                        padding: const EdgeInsets.only(bottom: 80),
+                        itemCount: todos.length,
+                        separatorBuilder: (_, __) => const Divider(height: 1),
+                        itemBuilder: (context, index) {
+                          final todo = todos[index];
+                          return TodoItemTile(
+                            item: todo,
+                            onToggle: todoProvider.toggleTodoStatus,
+                            onDelete:
+                                (id) => _showDeleteConfirmDialog(context, id),
+                            onEdit: todoProvider.editTodo,
+                          );
+                        },
+                      ),
             ),
           ],
         );
@@ -163,18 +164,11 @@ class _TodoScreenState extends State<TodoScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            icon,
-            size: 70,
-            color: Colors.grey[400],
-          ),
+          Icon(icon, size: 70, color: Colors.grey[400]),
           const SizedBox(height: 16),
           Text(
             message,
-            style: TextStyle(
-              fontSize: 16,
-              color: Colors.grey[600],
-            ),
+            style: TextStyle(fontSize: 16, color: Colors.grey[600]),
             textAlign: TextAlign.center,
           ),
           if (_filterMode == 'all') ...[
@@ -207,20 +201,21 @@ class _TodoScreenState extends State<TodoScreen> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => AddTodoScreen(
-          onAdd: (title) {
-            _addTodo(title);
-          },
-        ),
+        builder:
+            (context) => AddTodoScreen(
+              onAdd: (title) {
+                _addTodo(title);
+              },
+            ),
       ),
     );
   }
 
   void _addTodo(String title) {
     if (title.isNotEmpty) {
-      // 使用Provider获取TodoProvider实例
-      // 这里不需要setState，因为TodoProvider内部已经调用notifyListeners
-      final todoProvider = Provider.of<TodoProvider>(context, listen: false);
+      // 通过AppState获取TodoProvider实例
+      final todoProvider =
+          Provider.of<AppState>(context, listen: false).todoProvider;
 
       // 添加待办事项（Provider内部会处理加载状态和通知刷新）
       todoProvider.addTodo(title);
@@ -247,37 +242,44 @@ class _TodoScreenState extends State<TodoScreen> {
   void _showDeleteConfirmDialog(BuildContext context, String id) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('确认删除'),
-        content: const Text('确定要删除这个待办事项吗？'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('取消'),
-          ),
-          TextButton(
-            onPressed: () {
-              Provider.of<TodoProvider>(context, listen: false).deleteTodo(id);
-              Navigator.pop(context);
+      builder:
+          (context) => AlertDialog(
+            title: const Text('确认删除'),
+            content: const Text('确定要删除这个待办事项吗？'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('取消'),
+              ),
+              TextButton(
+                onPressed: () {
+                  // 通过AppState获取TodoProvider实例
+                  Provider.of<AppState>(
+                    context,
+                    listen: false,
+                  ).todoProvider.deleteTodo(id);
+                  Navigator.pop(context);
 
-              // 显示删除成功提示
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('删除成功'),
-                  duration: Duration(seconds: 2),
-                  behavior: SnackBarBehavior.floating,
-                ),
-              );
-            },
-            child: const Text('删除'),
+                  // 显示删除成功提示
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('删除成功'),
+                      duration: Duration(seconds: 2),
+                      behavior: SnackBarBehavior.floating,
+                    ),
+                  );
+                },
+                child: const Text('删除'),
+              ),
+            ],
           ),
-        ],
-      ),
     );
   }
 
   void _showClearCompletedDialog(BuildContext context) {
-    final todoProvider = Provider.of<TodoProvider>(context, listen: false);
+    // 通过AppState获取TodoProvider实例
+    final todoProvider =
+        Provider.of<AppState>(context, listen: false).todoProvider;
     final stats = todoProvider.getStats();
 
     // 如果没有已完成的待办事项，显示提示
@@ -294,32 +296,33 @@ class _TodoScreenState extends State<TodoScreen> {
 
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('清除已完成'),
-        content: Text('确定要清除全部 ${stats['completed']} 个已完成的待办事项吗？'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('取消'),
-          ),
-          TextButton(
-            onPressed: () {
-              todoProvider.clearCompletedTodos();
-              Navigator.pop(context);
+      builder:
+          (context) => AlertDialog(
+            title: const Text('清除已完成'),
+            content: Text('确定要清除全部 ${stats['completed']} 个已完成的待办事项吗？'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('取消'),
+              ),
+              TextButton(
+                onPressed: () {
+                  todoProvider.clearCompletedTodos();
+                  Navigator.pop(context);
 
-              // 显示清除成功提示
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('已清除所有已完成的待办事项'),
-                  duration: Duration(seconds: 2),
-                  behavior: SnackBarBehavior.floating,
-                ),
-              );
-            },
-            child: const Text('清除'),
+                  // 显示清除成功提示
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('已清除所有已完成的待办事项'),
+                      duration: Duration(seconds: 2),
+                      behavior: SnackBarBehavior.floating,
+                    ),
+                  );
+                },
+                child: const Text('清除'),
+              ),
+            ],
           ),
-        ],
-      ),
     );
   }
 }
